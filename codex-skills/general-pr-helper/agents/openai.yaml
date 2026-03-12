@@ -1,0 +1,4 @@
+interface:
+  display_name: "General PR Helper"
+  short_description: "Triage, fix, and validate pull requests"
+  default_prompt: "Use $general-pr-helper to inspect this PR, identify root cause, and propose the smallest safe fix."
