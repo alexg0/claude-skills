@@ -1,3 +1,9 @@
+---
+name: generate-pdfs
+description: Generate PDFs from markdown files, or create/update a Rakefile for PDF generation.
+type: command
+---
+
 Generate PDFs from markdown files, or create/update a Rakefile for PDF generation.
 
 ## Modes

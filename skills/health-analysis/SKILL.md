@@ -1,3 +1,9 @@
+---
+name: health-analysis
+description: Analyze DNA/genetic data and lab results to produce personalized health recommendations.
+type: command
+---
+
 Analyze DNA/genetic data and lab results to produce personalized health recommendations.
 
 ## Arguments

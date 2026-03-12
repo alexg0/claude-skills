@@ -1,6 +1,7 @@
 ---
 name: devonthink-mcp
 description: Manage DEVONthink content via the MCP server. Use for searching, reading, organizing, renaming, moving, tagging, or auditing DEVONthink records and databases, especially when maintaining inbox organization or applying naming/routing rules.
+type: skill
 ---
 
 # DEVONthink MCP

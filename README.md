@@ -1,28 +1,28 @@
-# Claude Code Skills & Agents
+# Claude Code & Codex Skills
 
-Custom commands, agents, and skills for [Claude Code](https://docs.anthropic.com/en/docs/claude-code) and [OpenAI Codex](https://openai.com/index/codex/).
+Unified skills repo for [Claude Code](https://docs.anthropic.com/en/docs/claude-code) and [OpenAI Codex](https://openai.com/index/codex/). Each skill is a single source of truth — the install script maps it to the right location for each tool.
 
-## Contents
+## Skills
 
-### Claude Code Commands (`/slash-commands`)
+| Skill | Type | Claude Code | Codex | Description |
+|-------|------|:-----------:|:-----:|-------------|
+| `generate-pdfs` | command | `/generate-pdfs` | skill | Generate PDFs from markdown via pandoc/xelatex |
+| `health-analysis` | command | `/health-analysis` | skill | Analyze DNA/genetic data and lab results |
+| `crash-diagnostics` | agent | auto-triggered | skill | Investigate Claude crashes and resource exhaustion |
+| `devonthink-mcp` | skill | — | skill | Manage DEVONthink content via MCP server |
+| `general-pr-helper` | skill | — | skill | Review, triage, and fix pull requests |
 
-| Command | Description |
-|---------|-------------|
-| `/generate-pdfs` | Generate PDFs from markdown via pandoc/xelatex, with Rakefile scaffolding |
-| `/health-analysis` | Analyze DNA/genetic data and lab results for personalized health recommendations |
+## How it works
 
-### Claude Code Agents (auto-triggered)
+Each skill lives in `skills/<name>/SKILL.md` with a `type` field in frontmatter:
 
-| Agent | Description |
-|-------|-------------|
-| `crash-diagnostics` | Investigates Claude crashes, resource exhaustion, and recommends configuration fixes |
+| Type | Claude Code | Codex |
+|------|-------------|-------|
+| `command` | Symlinked as `~/.claude/commands/<name>.md` | Symlinked as skill directory |
+| `agent` | Symlinked as `~/.claude/agents/<name>.md` | Symlinked as skill directory |
+| `skill` | Skipped (not directly supported yet) | Symlinked as skill directory |
 
-### Codex Skills
-
-| Skill | Description |
-|-------|-------------|
-| `devonthink-mcp` | Manage DEVONthink content via MCP — search, organize, rename, tag records |
-| `general-pr-helper` | Review, triage, and fix pull requests with a read-first workflow |
+Both tools ignore unknown frontmatter fields, so a single file works for both.
 
 ## Install
 
@@ -32,29 +32,36 @@ cd claude-skills
 ./install.sh
 ```
 
-This symlinks everything into the right locations:
-- Claude Code commands/agents → `~/.claude/commands/` and `~/.claude/agents/`
-- Codex skills → `~/.dotfiles/codex/skills/`
-
-Updates to the repo are picked up automatically since they're symlinked.
-
 ## Uninstall
 
 ```bash
 ./install.sh --uninstall
 ```
 
-## Adding new extensions
+## Adding a new skill
 
-1. Add files to the appropriate directory (`commands/`, `agents/`, or `codex-skills/`)
-2. Add the name to the corresponding array in `install.sh`
-3. Re-run `./install.sh`
+1. Create `skills/<name>/SKILL.md` with frontmatter:
+   ```yaml
+   ---
+   name: my-skill
+   description: What it does.
+   type: command  # or agent, or skill
+   ---
+   ```
+2. Optionally add `references/`, `agents/`, or other subdirs
+3. Run `./install.sh`
 
 ## Structure
 
 ```
-commands/           # Claude Code slash commands (invoked with /command-name)
-agents/             # Claude Code subagents (auto-triggered by context)
-codex-skills/       # OpenAI Codex skills (directory-based with SKILL.md)
-install.sh          # Symlink installer
+skills/
+  generate-pdfs/SKILL.md
+  health-analysis/SKILL.md
+  crash-diagnostics/SKILL.md
+  devonthink-mcp/SKILL.md
+  general-pr-helper/
+    SKILL.md
+    agents/openai.yaml
+    references/pr-workflow.md
+install.sh
 ```

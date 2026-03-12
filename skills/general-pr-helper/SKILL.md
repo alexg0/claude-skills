@@ -1,6 +1,7 @@
 ---
 name: general-pr-helper
 description: Review, triage, and fix pull requests with a read-first workflow. Use when asked to inspect a PR, identify failing checks or root cause, prepare a minimal fix, run verification, and optionally amend or push only after explicit user request.
+type: skill
 ---
 
 # General PR Helper

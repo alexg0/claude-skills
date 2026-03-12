@@ -1,6 +1,7 @@
 ---
 name: crash-diagnostics
-description: "Use this agent when Claude has crashed, run out of processes, hit resource limits, or experienced performance degradation. Also use when you need to investigate system resource issues, recommend configuration changes to prevent future crashes, or diagnose why a session became unresponsive.\n\nExamples:\n\n- user: \"Claude crashed during my last session and I lost all my work\"\n  assistant: \"Let me use the crash-diagnostics agent to investigate what happened and recommend preventive measures.\"\n  <uses Agent tool to launch crash-diagnostics>\n\n- user: \"My Claude session keeps running out of memory or processes\"\n  assistant: \"I'll launch the crash-diagnostics agent to analyze the resource usage patterns and suggest configuration improvements.\"\n  <uses Agent tool to launch crash-diagnostics>\n\n- user: \"figure out why claude crushed and ran out processes. recommend configuration to avoid in the future\"\n  assistant: \"I'll use the crash-diagnostics agent to investigate the crash, identify root causes, and provide configuration recommendations.\"\n  <uses Agent tool to launch crash-diagnostics>"
+description: "Use this agent when Claude has crashed, run out of processes, hit resource limits, or experienced performance degradation. Also use when you need to investigate system resource issues, recommend configuration changes to prevent future crashes, or diagnose why a session became unresponsive."
+type: agent
 model: opus
 color: yellow
 memory: user
