@@ -32,11 +32,34 @@ cd claude-skills
 ./install.sh
 ```
 
+Use `--dry-run` to preview without making changes.
+
 ## Uninstall
 
 ```bash
 ./install.sh --uninstall
 ```
+
+## Import
+
+Pull skills created interactively by Claude Code or Codex back into this repo:
+
+```bash
+./import.sh              # interactive — prompts per skill
+./import.sh --dry-run    # preview what would be imported
+./import.sh -f           # import all without prompting
+./import.sh my-skill     # import a single skill by name
+```
+
+The import script scans three source locations for non-symlink files that don't already exist in `skills/`:
+
+| Source | Detected as |
+|--------|-------------|
+| `~/.claude/commands/*.md` | `command` |
+| `~/.claude/agents/*.md` | `agent` |
+| `~/.dotfiles/codex/skills/*/` | type from frontmatter |
+
+If a name appears in multiple sources, precedence is codex > agent > command. After importing, `install.sh` runs automatically to symlink everything back.
 
 ## Adding a new skill
 
@@ -64,4 +87,5 @@ skills/
     agents/openai.yaml
     references/pr-workflow.md
 install.sh
+import.sh
 ```
