@@ -12,7 +12,7 @@ set -euo pipefail
 # Usage: ./install.sh [--uninstall] [--dry-run]
 
 CLAUDE_DIR="${HOME}/.claude"
-CODEX_DIR="${HOME}/.dotfiles/codex"
+CODEX_DIR="${HOME}/.codex"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 SKILLS_DIR="${SCRIPT_DIR}/skills"
 

@@ -6,6 +6,8 @@ type: command
 
 Generate PDFs from markdown files, or create/update a Rakefile for PDF generation.
 
+When using XeLaTeX, prefer a Unicode-capable main font such as `Noto Serif` or `STIX Two Text` so body-text Greek characters render correctly. Keep lightweight text replacements only for symbols that still warn in the chosen font (for example emoji or arrows).
+
 ## Modes
 
 ### 1. Build PDFs (default, no arguments or target name as argument)
@@ -13,10 +15,10 @@ Generate PDFs from markdown files, or create/update a Rakefile for PDF generatio
 Look for a Rakefile in the current working directory or project root.
 
 - If Rakefile exists and has no arguments: run `rake pdf:all`
-- If Rakefile exists with a target argument: run `rake pdf:build[$ARGUMENTS]`
+- If Rakefile exists with a target argument: run `rake 'pdf:build[$ARGUMENTS]'` so zsh does not treat brackets as globs
 - If no Rakefile exists: offer to create one (see mode 2), or use pandoc directly for a one-off:
   ```
-  pandoc <file>.md --toc --number-sections --pdf-engine=xelatex -V geometry:margin=1in -V fontsize:10pt -o <file>.pdf
+  pandoc <file>.md --toc --number-sections --pdf-engine=xelatex -V geometry:margin=1in -V fontsize:11pt -V mainfont:"Noto Serif" -o <file>.pdf
   ```
 
 After building, report which PDFs were generated and their file sizes.
@@ -85,9 +87,9 @@ The `build_pdf!` function should:
 - Prepend pandoc title block (`% Title`, `% Author`, `% Date`)
 - Use `title_for(name)` to get the title (auto-extracted from H1, with optional override)
 - Use `GEOMETRY_OVERRIDES.fetch(name, "margin=1in")` for geometry
-- Replace common emoji with text equivalents for LaTeX compatibility (checkmarks, warning signs, etc.)
+- Replace emoji with text equivalents for LaTeX compatibility, and only add narrow symbol fallbacks (for example `->` for `→`) if the selected Unicode font still warns
 - Call `render_mermaid` to convert any mermaid code blocks to inline PNGs
-- Run pandoc with: `--toc --number-sections --pdf-engine=xelatex -V geometry:<geometry> -V fontsize:10pt -V linkcolor:blue -V urlcolor:blue`
+- Run pandoc with: `--toc --number-sections --pdf-engine=xelatex -V geometry:<geometry> -V fontsize:11pt -V mainfont:"Noto Serif" -V linkcolor:blue -V urlcolor:blue`
 
 Include these rake tasks using **proper Rake file-task dependencies** (not manual `invoke` in blocks):
 
@@ -130,6 +132,7 @@ task default: all_pdfs
 Key design principles:
 - **Auto-discovery**: `Dir.glob` finds all `.md` files — no manual list to maintain
 - **Auto-titles**: First `# H1` line is extracted as the PDF title; `TITLE_OVERRIDES` for exceptions
+- **Unicode-safe PDFs**: Prefer a Unicode-capable XeLaTeX main font before transliterating source text
 - **Proper dependencies**: Use Rake file tasks with prerequisites so unchanged files are never rebuilt
 - **Directory tasks**: Use `directory` task instead of `FileUtils.mkdir_p` in build functions
 
