@@ -3,13 +3,15 @@ set -euo pipefail
 
 # Import skills from Claude Code and Codex into this repo.
 #
-# Scans ~/.claude/commands/, ~/.claude/agents/, and ~/.dotfiles/codex/skills/
-# for non-symlink skills that don't already exist in skills/, copies them in
-# with proper SKILL.md frontmatter, then runs install.sh to symlink back.
+# Scans ~/.claude/commands/, ~/.claude/agents/, ~/.claude/skills/, and
+# ~/.dotfiles/codex/skills/ for non-symlink skills that don't already exist
+# in skills/, copies them in with proper SKILL.md frontmatter, then runs
+# install.sh to symlink back.
 #
 # Usage: ./import.sh [--dry-run] [-f|--force] [--help] [name]
 
 CLAUDE_DIR="${HOME}/.claude"
+CLAUDE_SKILLS_DIR="${HOME}/.claude/skills"
 CODEX_DIR="${HOME}/.dotfiles/codex"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 SKILLS_DIR="${SCRIPT_DIR}/skills"
@@ -141,6 +143,33 @@ if [ -d "${CODEX_DIR}/skills" ]; then
   done
 fi
 
+# Scan Claude Code skills (skip symlinks — most are gstack aliases)
+if [ -d "${CLAUDE_SKILLS_DIR}" ]; then
+  for d in "${CLAUDE_SKILLS_DIR}"/*/; do
+    [ -d "$d" ] || continue
+    [ -L "${d%/}" ] && continue
+    name="$(basename "$d")"
+    [[ "$name" == *.bak ]] && continue
+    # Accept either SKILL.md or skill.md
+    skill_file=""
+    if [ -f "${d}SKILL.md" ]; then
+      skill_file="${d}SKILL.md"
+    elif [ -f "${d}skill.md" ]; then
+      skill_file="${d}skill.md"
+    else
+      continue
+    fi
+    [ -d "${SKILLS_DIR}/${name}" ] && continue
+    local_type="$(get_type "$skill_file")"
+    if [ -n "${CANDIDATES_PATH[$name]+x}" ]; then
+      echo "  ⚠ ${name}: found in claude/skills/ and ${CANDIDATES_SOURCE[$name]}/, preferring claude/skills/"
+    fi
+    CANDIDATES_PATH["$name"]="$d"
+    CANDIDATES_SOURCE["$name"]="skill"
+    CANDIDATES_TYPE["$name"]="${local_type:-agent}"
+  done
+fi
+
 # Filter by target name if specified
 if [ -n "$TARGET_NAME" ]; then
   if [ -z "${CANDIDATES_PATH[$TARGET_NAME]+x}" ]; then
@@ -149,6 +178,7 @@ if [ -n "$TARGET_NAME" ]; then
     echo "Checked:"
     echo "  ${CLAUDE_DIR}/commands/${TARGET_NAME}.md"
     echo "  ${CLAUDE_DIR}/agents/${TARGET_NAME}.md"
+    echo "  ${CLAUDE_SKILLS_DIR}/${TARGET_NAME}/"
     echo "  ${CODEX_DIR}/skills/${TARGET_NAME}/"
     exit 0
   fi
@@ -211,9 +241,13 @@ for name in $(echo "${!CANDIDATES_PATH[@]}" | tr ' ' '\n' | sort); do
   echo "  + importing ${name} (${source_type} → type: ${inferred_type})"
 
   case "$source_type" in
-    codex)
+    codex|skill)
       # Copy entire directory
       run cp -R "$source_path" "${SKILLS_DIR}/${name}"
+      # Normalize skill.md → SKILL.md if needed
+      if [ "$DRY_RUN" != true ] && [ -f "${SKILLS_DIR}/${name}/skill.md" ] && [ ! -f "${SKILLS_DIR}/${name}/SKILL.md" ]; then
+        mv "${SKILLS_DIR}/${name}/skill.md" "${SKILLS_DIR}/${name}/SKILL.md"
+      fi
       ;;
 
     command|agent)
