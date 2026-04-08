@@ -129,8 +129,8 @@ if [ "$MODE" = "uninstall" ]; then
     type="$(get_type "${skill_path}/SKILL.md")"
 
     if [ -z "$type" ]; then
-      echo "  ⚠ ${name}: no type in frontmatter, skipping"
-      continue
+      echo "  ⚠ ${name}: no type in frontmatter, defaulting to \"command\""
+      type="command"
     fi
 
     case "$type" in
@@ -164,8 +164,8 @@ for skill_path in "${skill_dirs[@]}"; do
   type="$(get_type "${skill_path}/SKILL.md")"
 
   if [ -z "$type" ]; then
-    echo "  ⚠ ${name}: no type in frontmatter, skipping"
-    continue
+    echo "  ⚠ ${name}: no type in frontmatter, defaulting to \"command\""
+    type="command"
   fi
 
   echo "  ${name} (type: ${type})"

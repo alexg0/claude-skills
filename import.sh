@@ -20,6 +20,9 @@ DRY_RUN=false
 FORCE=false
 TARGET_NAME=""
 
+# Default ignore patterns (glob-style, applied to skill name)
+IGNORE_PATTERNS=("gsd-*" "gstack" "gstack-*")
+
 for arg in "$@"; do
   case "$arg" in
     --dry-run)   DRY_RUN=true ;;
@@ -54,6 +57,16 @@ run() {
   fi
 }
 
+# Check if a name matches any ignore pattern
+is_ignored() {
+  local name="$1"
+  for pat in "${IGNORE_PATTERNS[@]}"; do
+    # shellcheck disable=SC2254
+    case "$name" in $pat) return 0 ;; esac
+  done
+  return 1
+}
+
 # Extract type from frontmatter
 get_type() {
   local skill_md="$1"
@@ -86,6 +99,50 @@ quote_description() {
   fi
 }
 
+# Ensure SKILL.md has frontmatter with a type field.
+# Usage: ensure_frontmatter <skill_md> <name> <type>
+ensure_frontmatter() {
+  local skill_md="$1" name="$2" desired_type="$3"
+
+  if has_frontmatter "$skill_md"; then
+    local existing_type
+    existing_type="$(get_type "$skill_md")"
+    if [ -n "$existing_type" ]; then
+      return  # already has type
+    fi
+    # Has frontmatter but no type — inject before closing ---
+    local tmp="${skill_md}.tmp"
+    awk -v t="$desired_type" '
+      BEGIN {n=0}
+      /^---$/ {
+        n++
+        if (n == 2) { print "type: " t }
+        print
+        next
+      }
+      { print }
+    ' "$skill_md" > "$tmp"
+    mv "$tmp" "$skill_md"
+  else
+    # No frontmatter — generate one and prepend
+    local desc
+    desc="$(first_content_line "$skill_md")"
+    desc="${desc#\#* }"
+    desc="$(quote_description "$desc")"
+    local tmp="${skill_md}.tmp"
+    {
+      echo "---"
+      echo "name: ${name}"
+      echo "description: ${desc}"
+      echo "type: ${desired_type}"
+      echo "---"
+      echo ""
+      cat "$skill_md"
+    } > "$tmp"
+    mv "$tmp" "$skill_md"
+  fi
+}
+
 # ── Discovery ──────────────────────────────────────────────────────────
 
 # Associative arrays: name → source path, name → source type, name → inferred type
@@ -100,6 +157,7 @@ if [ -d "${CLAUDE_DIR}/commands" ]; then
     [ -L "$f" ] && continue
     [[ "$f" == *.bak ]] && continue
     name="$(basename "$f" .md)"
+    is_ignored "$name" && continue
     [ -d "${SKILLS_DIR}/${name}" ] && continue
     CANDIDATES_PATH["$name"]="$f"
     CANDIDATES_SOURCE["$name"]="command"
@@ -114,6 +172,7 @@ if [ -d "${CLAUDE_DIR}/agents" ]; then
     [ -L "$f" ] && continue
     [[ "$f" == *.bak ]] && continue
     name="$(basename "$f" .md)"
+    is_ignored "$name" && continue
     [ -d "${SKILLS_DIR}/${name}" ] && continue
     if [ -n "${CANDIDATES_PATH[$name]+x}" ]; then
       echo "  ⚠ ${name}: found in both commands/ and agents/, preferring agents/"
@@ -132,6 +191,7 @@ if [ -d "${CODEX_DIR}/skills" ]; then
     [[ "$(basename "$d")" == *.bak ]] && continue
     [ -f "${d}SKILL.md" ] || continue
     name="$(basename "$d")"
+    is_ignored "$name" && continue
     [ -d "${SKILLS_DIR}/${name}" ] && continue
     local_type="$(get_type "${d}SKILL.md")"
     if [ -n "${CANDIDATES_PATH[$name]+x}" ]; then
@@ -150,6 +210,7 @@ if [ -d "${CLAUDE_SKILLS_DIR}" ]; then
     [ -L "${d%/}" ] && continue
     name="$(basename "$d")"
     [[ "$name" == *.bak ]] && continue
+    is_ignored "$name" && continue
     # Accept either SKILL.md or skill.md
     skill_file=""
     if [ -f "${d}SKILL.md" ]; then
@@ -251,50 +312,15 @@ for name in $(echo "${!CANDIDATES_PATH[@]}" | tr ' ' '\n' | sort); do
       ;;
 
     command|agent)
-      dest_dir="${SKILLS_DIR}/${name}"
-      dest_file="${dest_dir}/SKILL.md"
-      run mkdir -p "$dest_dir"
-
-      if [ "$DRY_RUN" = true ]; then
-        run cp "$source_path" "$dest_file"
-      else
-        if has_frontmatter "$source_path"; then
-          existing_type="$(get_type "$source_path")"
-          if [ -n "$existing_type" ]; then
-            # Has type already — copy as-is
-            cp "$source_path" "$dest_file"
-          else
-            # Has frontmatter but no type — inject type before closing ---
-            awk -v t="$inferred_type" '
-              BEGIN {n=0}
-              /^---$/ {
-                n++
-                if (n == 2) { print "type: " t }
-                print
-                next
-              }
-              { print }
-            ' "$source_path" > "$dest_file"
-          fi
-        else
-          # No frontmatter — generate one
-          desc="$(first_content_line "$source_path")"
-          # Strip leading # and whitespace from markdown headings
-          desc="${desc#\#* }"
-          desc="$(quote_description "$desc")"
-          {
-            echo "---"
-            echo "name: ${name}"
-            echo "description: ${desc}"
-            echo "type: ${inferred_type}"
-            echo "---"
-            echo ""
-            cat "$source_path"
-          } > "$dest_file"
-        fi
-      fi
+      run mkdir -p "${SKILLS_DIR}/${name}"
+      run cp "$source_path" "${SKILLS_DIR}/${name}/SKILL.md"
       ;;
   esac
+
+  # Ensure frontmatter has type field
+  if [ "$DRY_RUN" != true ]; then
+    ensure_frontmatter "${SKILLS_DIR}/${name}/SKILL.md" "$name" "$inferred_type"
+  fi
 
   imported=$((imported + 1))
 done

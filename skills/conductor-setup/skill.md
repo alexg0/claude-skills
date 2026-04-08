@@ -1,11 +1,11 @@
 ---
 name: conductor-setup
+type: command
 version: 1.0.0
 description: |
-  Set up a Conductor workspace for the LLM Wiki system. Registers the Obsidian
-  vault, checks dependencies, and ensures the workspace is ready to use.
-  Use when: "setup conductor", "set up workspace", "conductor setup",
-  "register vault", "initialize workspace", "get started".
+  Create or update conductor.json with setup, archive, and run lifecycle hooks.
+  Use when: "setup conductor", "conductor setup", "initialize workspace",
+  "add conductor hooks", "configure workspace lifecycle".
 allowed-tools:
   - Bash
   - Read
@@ -17,90 +17,104 @@ allowed-tools:
 
 # Conductor Workspace Setup
 
-This skill sets up a Conductor workspace for the Honolulu LLM Wiki system.
+Create or update the `conductor.json` lifecycle config for this project.
 
 ## How Conductor workspaces work
 
 Conductor creates each workspace as a **git worktree** — an isolated working copy
-of the repo with its own branch and directory path. For this repo:
-
-- **Main repo**: `~/Dropbox (Personal)/work/cowork/personal/alexg-wiki` (master)
-- **Workspaces**: `~/conductor/workspaces/alexg-wiki/<workspace-name>/` (each on its own branch)
+of the repo with its own branch and directory path.
 
 Each worktree shares the same git history but has independent files on disk.
-This means:
 
-- **Each workspace gets its own Obsidian vault** — because Obsidian registers
-  vaults by absolute path, and each worktree has a unique path. You can have
-  multiple workspaces open in Obsidian simultaneously as separate vaults.
-- **Wiki content diverges per branch** — each workspace/branch can have different
-  projects and wiki state. Changes merge back to master via PRs.
-- **`.obsidian/` config is per-worktree** — each workspace gets its own Obsidian
-  state (open tabs, workspace layout) while sharing committed config (app.json,
-  core-plugins.json) through git.
-- **`conductor.json`** defines lifecycle hooks:
-  - `setup` runs `rake vault:register` when a workspace is created
-  - `archive` runs `rake vault:unregister` when a workspace is archived
-  - This keeps Obsidian's vault list clean as workspaces come and go
+**`conductor.json`** defines lifecycle hooks that Conductor runs automatically:
 
-Use `rake vault:cleanup` periodically to remove vaults for worktrees that were
-deleted outside of Conductor's archive flow.
+| Hook      | When it runs                          | Purpose                                |
+|-----------|---------------------------------------|----------------------------------------|
+| `setup`   | Workspace is created                  | Install deps, register tools, etc.     |
+| `archive` | Workspace is archived                 | Kill servers, clean up registrations    |
+| `run`     | User triggers "Run" in Conductor      | Start dev server, build, open app, etc.|
+
+### Port allocation
+
+Conductor sets `$CONDUCTOR_PORT` for each workspace. The workspace owns ports
+`$CONDUCTOR_PORT` through `$CONDUCTOR_PORT+9` (10 ports total). Servers started
+by `setup` or `run` should bind to `$CONDUCTOR_PORT` (or an offset within the range)
+instead of hardcoded ports. This avoids collisions between concurrent workspaces.
+
+The `run` hook should kill any leftover processes on its ports before starting.
+The `archive` hook should kill any servers still running on the workspace's ports.
 
 ## Steps
 
-Run these steps in order:
+### 1. Detect project type and existing config
 
-### 1. Register Obsidian vault
+- Check if `conductor.json` already exists. If so, read it and offer to update.
+- Look at the project to determine sensible defaults:
+  - **Package manager**: `package.json` → npm/yarn/pnpm; `Gemfile` → bundler; `Rakefile` → rake; `Makefile` → make; `pyproject.toml` → pip/poetry
+  - **Dev server**: common scripts like `dev`, `start`, `serve` in package.json; `Procfile`; `docker-compose.yml`
+  - **Setup tasks**: dependency install commands, database setup, code generation
 
-```bash
-rake vault:register
+### 2. Create `conductor.json`
+
+Write `conductor.json` to the project root with this structure:
+
+```json
+{
+  "setup": "<command to run when workspace is created>",
+  "archive": "<command to run when workspace is archived>",
+  "run": "<command to start the project>"
+}
 ```
 
-This registers the current workspace directory as an Obsidian vault. If Obsidian
-is running, it will be restarted to pick up the new vault.
+All three fields are optional — omit any that don't apply. Values are shell commands
+that Conductor executes in the workspace directory.
 
-### 2. Check dependencies
+**Examples by project type:**
 
-```bash
-rake setup
+Node.js:
+```json
+{
+  "setup": "npm install",
+  "archive": "lsof -ti :$CONDUCTOR_PORT | xargs kill 2>/dev/null; true",
+  "run": "lsof -ti :$CONDUCTOR_PORT | xargs kill 2>/dev/null; PORT=$CONDUCTOR_PORT npm run dev"
+}
 ```
 
-Verifies that Obsidian and optional tools (qmd) are installed.
-
-### 3. Open in Obsidian
-
-```bash
-rake obsidian
+Ruby:
+```json
+{
+  "setup": "bundle install",
+  "archive": "lsof -ti :$CONDUCTOR_PORT | xargs kill 2>/dev/null; true",
+  "run": "lsof -ti :$CONDUCTOR_PORT | xargs kill 2>/dev/null; bundle exec rails server -p $CONDUCTOR_PORT"
+}
 ```
 
-Opens the vault in Obsidian. The vault name will match the workspace folder name.
+Python:
+```json
+{
+  "setup": "pip install -e '.[dev]'",
+  "archive": "lsof -ti :$CONDUCTOR_PORT | xargs kill 2>/dev/null; true",
+  "run": "lsof -ti :$CONDUCTOR_PORT | xargs kill 2>/dev/null; flask run --port $CONDUCTOR_PORT"
+}
+```
 
-### 4. Report status
+Multi-step setup (use `&&` to chain):
+```json
+{
+  "setup": "npm install && npm run db:migrate",
+  "archive": "lsof -ti :$CONDUCTOR_PORT | xargs kill 2>/dev/null; npm run db:drop",
+  "run": "lsof -ti :$CONDUCTOR_PORT | xargs kill 2>/dev/null; PORT=$CONDUCTOR_PORT npm run dev"
+}
+```
 
-After running the above, report to the user:
-- Whether the vault was newly registered or already existed
-- Which dependencies are installed and which are missing
-- The current git branch (for awareness of which branch the vault reflects)
-- List existing projects with `rake projects`
+### 3. Report to the user
+
+After writing `conductor.json`, report:
+- What hooks were configured and why
+- Any hooks that were left out and why
+- The current git branch for context
 
 ### Troubleshooting
 
-If vault registration fails:
-- Check that Obsidian is installed at `/Applications/Obsidian.app`
-- Check the vault registry: `rake vault:list`
-- Clean up stale vaults: `rake vault:cleanup`
-
-If Obsidian doesn't show the vault after registration:
-- Obsidian must be restarted after modifying its config
-- The `vault:register` task handles this automatically
-- If it still doesn't work, manually quit and reopen Obsidian
-
-## Teardown
-
-When archiving a workspace, run:
-
-```bash
-rake vault:unregister
-```
-
-This is configured automatically in `conductor.json` as the archive script.
+- If you can't determine the project type, ask the user what commands they use to set up and run the project.
+- If `conductor.json` already exists, show the current config and ask what to change rather than overwriting blindly.
