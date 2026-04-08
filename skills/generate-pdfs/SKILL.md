@@ -6,7 +6,7 @@ type: command
 
 Generate PDFs from markdown files, or create/update a Rakefile for PDF generation.
 
-When using XeLaTeX, prefer a Unicode-capable main font such as `Noto Serif` or `STIX Two Text` so body-text Greek characters render correctly. Keep lightweight text replacements only for symbols that still warn in the chosen font (for example emoji or arrows).
+When using XeLaTeX, prefer `Noto Serif` as the default Unicode-capable main font so body-text Greek characters render correctly. Keep lightweight text replacements only for symbols that still warn in the chosen font (for example emoji or arrows).
 
 ## Modes
 
@@ -77,7 +77,10 @@ CLEAN.include(BUILD_DIR)
 
 Include these standard helper functions:
 - `cmd!(*args)` — run shell command, raise on failure
+- `on_path?(cmd)` — check whether a binary is on PATH
 - `which!(cmd, install_hint:)` — check for binary on PATH
+- `homebrew_available?` — check whether Homebrew is available
+- `ensure_cask!(cask_name, install_hint:)` — install/check required Homebrew casks
 - `document_date_for(files)` — newest mtime formatted as date
 - `render_mermaid(markdown)` — render mermaid code blocks to PNG via mmdc (only if mermaid blocks exist)
 - `pdf_path(name)` — returns `pdfs/<name>.pdf`
@@ -90,6 +93,11 @@ The `build_pdf!` function should:
 - Replace emoji with text equivalents for LaTeX compatibility, and only add narrow symbol fallbacks (for example `->` for `→`) if the selected Unicode font still warns
 - Call `render_mermaid` to convert any mermaid code blocks to inline PNGs
 - Run pandoc with: `--toc --number-sections --pdf-engine=xelatex -V geometry:<geometry> -V fontsize:11pt -V mainfont:"Noto Serif" -V linkcolor:blue -V urlcolor:blue`
+
+The `pdf:deps` task should:
+- check `pandoc` with `brew install pandoc`
+- check `xelatex` with `brew install --cask basictex` and the `path_helper` note
+- ensure the `font-noto-serif` cask is installed with `brew install --cask font-noto-serif`
 
 Include these rake tasks using **proper Rake file-task dependencies** (not manual `invoke` in blocks):
 
@@ -143,4 +151,5 @@ If argument is `add` — no longer needed since files are auto-discovered. If th
 Run `rake pdf:deps` if Rakefile exists, or manually check for pandoc and xelatex and report install commands if missing:
 - `brew install pandoc`
 - `brew install --cask basictex` then `eval "$(/usr/libexec/path_helper)"`
+- `brew install --cask font-noto-serif`
 - `npm i -g @mermaid-js/mermaid-cli` (only if project has mermaid diagrams)
