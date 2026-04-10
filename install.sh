@@ -19,6 +19,66 @@ SKILLS_DIR="${SCRIPT_DIR}/skills"
 DRY_RUN=false
 MODE="install"
 
+# Detect worktree and resolve master paths for stable symlinks.
+# When running from a worktree branch, prefer symlinking to the main
+# worktree (master) when files are identical, so symlinks survive
+# worktree deletion.
+MAIN_WORKTREE=""
+IS_WORKTREE=false
+
+if git -C "$SCRIPT_DIR" rev-parse --is-inside-work-tree &>/dev/null; then
+  _main_wt="$(git -C "$SCRIPT_DIR" worktree list --porcelain | head -1)"
+  _main_wt="${_main_wt#worktree }"
+  _current_wt="$(git -C "$SCRIPT_DIR" rev-parse --show-toplevel)"
+
+  if [ "$_main_wt" != "$_current_wt" ]; then
+    IS_WORKTREE=true
+    if git -C "$SCRIPT_DIR" rev-parse --verify master &>/dev/null; then
+      MAIN_WORKTREE="$_main_wt"
+    else
+      echo "⚠ master branch not found — all symlinks will point to this worktree"
+    fi
+  fi
+fi
+
+# Resolve the install source for a skill. In a worktree, prefer the master
+# copy when the file/directory is identical. Returns the resolved path on
+# stdout; warnings go to stderr.
+resolve_source() {
+  local current_src="$1"   # absolute path in current worktree
+  local rel_path="$2"      # path relative to repo root (e.g. skills/foo/SKILL.md)
+
+  if [ "$IS_WORKTREE" = false ] || [ -z "$MAIN_WORKTREE" ]; then
+    echo "$current_src"
+    return
+  fi
+
+  local master_src="${MAIN_WORKTREE}/${rel_path}"
+
+  if [ ! -e "$master_src" ]; then
+    echo "    ⚠ not on master — linking to worktree" >&2
+    echo "$current_src"
+    return
+  fi
+
+  # Compare: file vs file, or directory tree vs directory tree
+  if [ -f "$current_src" ]; then
+    if ! diff -q "$current_src" "$master_src" &>/dev/null; then
+      echo "    ⚠ differs from master — linking to worktree" >&2
+      echo "$current_src"
+      return
+    fi
+  elif [ -d "$current_src" ]; then
+    if ! diff -rq "$current_src" "$master_src" &>/dev/null; then
+      echo "    ⚠ differs from master — linking to worktree" >&2
+      echo "$current_src"
+      return
+    fi
+  fi
+
+  echo "$master_src"
+}
+
 for arg in "$@"; do
   case "$arg" in
     --uninstall) MODE="uninstall" ;;
@@ -133,18 +193,22 @@ if [ "$MODE" = "uninstall" ]; then
       type="command"
     fi
 
+    # Resolve source to match what install would have linked
+    file_src="$(resolve_source "${skill_path}/SKILL.md" "skills/${name}/SKILL.md")"
+    dir_src="$(resolve_source "${skill_path}" "skills/${name}")"
+
     case "$type" in
       command|skill)
-        unlink_path "${skill_path}/SKILL.md" "${CLAUDE_DIR}/commands/${name}.md" "claude:commands/${name}.md"
+        unlink_path "$file_src" "${CLAUDE_DIR}/commands/${name}.md" "claude:commands/${name}.md"
         ;;
       agent)
-        unlink_path "${skill_path}/SKILL.md" "${CLAUDE_DIR}/agents/${name}.md" "claude:agents/${name}.md"
+        unlink_path "$file_src" "${CLAUDE_DIR}/agents/${name}.md" "claude:agents/${name}.md"
         ;;
     esac
 
     # All skills unlink from Codex
     if [ -d "${CODEX_DIR}" ]; then
-      unlink_path "${skill_path}" "${CODEX_DIR}/skills/${name}" "codex:skills/${name}"
+      unlink_path "$dir_src" "${CODEX_DIR}/skills/${name}" "codex:skills/${name}"
     fi
   done
 
@@ -170,13 +234,17 @@ for skill_path in "${skill_dirs[@]}"; do
 
   echo "  ${name} (type: ${type})"
 
+  # Resolve source paths (prefer master in worktrees)
+  file_src="$(resolve_source "${skill_path}/SKILL.md" "skills/${name}/SKILL.md")"
+  dir_src="$(resolve_source "${skill_path}" "skills/${name}")"
+
   # Claude Code: symlink SKILL.md into commands/ or agents/
   case "$type" in
     command|skill)
-      link_file "${skill_path}/SKILL.md" "${CLAUDE_DIR}/commands/${name}.md" "  → claude:commands/${name}.md"
+      link_file "$file_src" "${CLAUDE_DIR}/commands/${name}.md" "  → claude:commands/${name}.md"
       ;;
     agent)
-      link_file "${skill_path}/SKILL.md" "${CLAUDE_DIR}/agents/${name}.md" "  → claude:agents/${name}.md"
+      link_file "$file_src" "${CLAUDE_DIR}/agents/${name}.md" "  → claude:agents/${name}.md"
       ;;
     *)
       echo "    ⚠ unknown type '${type}', skipping Claude Code install"
@@ -185,7 +253,7 @@ for skill_path in "${skill_dirs[@]}"; do
 
   # Codex: symlink entire directory
   if [ -d "${CODEX_DIR}" ]; then
-    link_dir "${skill_path}" "${CODEX_DIR}/skills/${name}" "  → codex:skills/${name}"
+    link_dir "$dir_src" "${CODEX_DIR}/skills/${name}" "  → codex:skills/${name}"
   fi
 
   echo ""
