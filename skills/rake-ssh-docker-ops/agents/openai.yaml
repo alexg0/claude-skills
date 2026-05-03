@@ -1,0 +1,4 @@
+interface:
+  display_name: "Rake SSH Docker Ops"
+  short_description: "Operate Docker hosts through Rake SSH tasks"
+  default_prompt: "Use $rake-ssh-docker-ops to run and verify a Docker operation wrapped by Rake over SSH."

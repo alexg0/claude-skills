@@ -1,0 +1,4 @@
+interface:
+  display_name: "Remote Rsync Migration"
+  short_description: "Migrate data safely between SSH hosts"
+  default_prompt: "Use $remote-rsync-migration to plan and verify a host-to-host data migration."
