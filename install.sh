@@ -165,10 +165,18 @@ unlink_path() {
   fi
 }
 
-# Extract type from SKILL.md frontmatter
+# Extract type from SKILL.md frontmatter. Current Codex skills keep custom
+# fields under metadata; retain support for this repo's legacy top-level type.
 get_type() {
   local skill_md="$1"
-  awk '/^---$/{n++; next} n==1 && /^type:/{print $2; exit}' "$skill_md"
+  awk '
+    /^---$/ { n++; next }
+    n != 1 { next }
+    /^type:/ { print $2; exit }
+    /^metadata:/ { in_metadata=1; next }
+    in_metadata && /^[[:space:]]+type:/ { print $2; exit }
+    in_metadata && /^[^[:space:]]/ { in_metadata=0 }
+  ' "$skill_md"
 }
 
 # Gather all skills

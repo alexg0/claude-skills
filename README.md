@@ -11,10 +11,11 @@ Unified skills repo for [Claude Code](https://docs.anthropic.com/en/docs/claude-
 | `crash-diagnostics` | agent | auto-triggered | skill | Investigate Claude crashes and resource exhaustion |
 | `devonthink-mcp` | skill | — | skill | Manage DEVONthink content via MCP server |
 | `general-pr-helper` | skill | — | skill | Review, triage, and fix pull requests |
+| `conductor` | skill | command | skill | Configure and troubleshoot Conductor workspaces and project setup |
 
 ## How it works
 
-Each skill lives in `skills/<name>/SKILL.md` with a `type` field in frontmatter:
+Each skill lives in `skills/<name>/SKILL.md` with a `metadata.type` field in frontmatter. The installer also supports the legacy top-level `type` field.
 
 | Type | Claude Code | Codex |
 |------|-------------|-------|
@@ -68,7 +69,8 @@ If a name appears in multiple sources, precedence is codex > agent > command. Af
    ---
    name: my-skill
    description: What it does.
-   type: command  # or agent, or skill
+   metadata:
+     type: command  # or agent, or skill
    ---
    ```
 2. Optionally add `references/`, `agents/`, or other subdirs
