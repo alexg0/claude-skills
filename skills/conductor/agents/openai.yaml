@@ -1,4 +1,0 @@
-interface:
-  display_name: "Conductor"
-  short_description: "Configure and troubleshoot Conductor workspaces"
-  default_prompt: "Use $conductor to configure this repository for safe parallel Conductor workspaces."

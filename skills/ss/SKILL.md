@@ -1,88 +1,40 @@
 ---
 name: ss
-description: Grab recent screenshots from ~/Dropbox/Screenshots and act on them. Supports count arg, negative index, and freeform action after the number.
-type: command
+description: Locate and inspect recent screenshots without exposing unrelated files. Use when the user uses `ss` as a screenshot shorthand, asks about the latest screenshot, selects a recent screenshot by positive or negative index, or requests an action based on one or more screenshots.
 ---
 
-# /ss - Screenshot Grabber
+# Recent screenshots
 
-Grab recent screenshots from `~/Dropbox/Screenshots` and act on them visually.
+Select only the screenshots needed for the request, inspect them with the client's image-viewing capability, and apply the requested action.
 
-## Argument Parsing
+## Parse the request
 
-The user invokes `/ss [count] [action...]`. Parse the arguments as follows:
+Treat the first numeric argument as the selector:
 
-1. **First argument** (optional): a number controlling which screenshots to grab.
-   - No number or `1` → grab the **1 most recent** screenshot
-   - Positive `N` (e.g. `3`) → grab the **N most recent** screenshots
-   - Negative `-N` (e.g. `-4`) → grab **only the Nth most recent** screenshot (1-indexed, so `-1` = most recent, `-4` = 4th most recent)
-2. **Remaining arguments** (optional): the action/instruction to perform on the screenshots.
-   - If no action is given, default to describing what's in the screenshot(s).
+- omitted or `1`: the most recent screenshot;
+- positive `N`: the `N` most recent screenshots;
+- negative `-N`: only the Nth most recent screenshot, so `-1` is newest and `-4` is fourth-newest.
 
-## Execution Steps
+Treat the remaining text as the requested action. Describe the selected image when no action is supplied. Reject `0` because it has no useful selection meaning.
 
-### Step 1: List recent screenshots
+## Select privately
 
-Run this command to find screenshots from the last 10 hours, newest first:
+Run the bundled selector from the skill directory:
 
 ```bash
-find ~/Dropbox/Screenshots -maxdepth 1 -type f \( -name "*.png" -o -name "*.jpg" -o -name "*.jpeg" -o -name "*.gif" -o -name "*.webp" -o -name "*.heic" \) -mmin -600 | xargs ls -t
+python3 "<skill-dir>/scripts/select_screenshots.py" <selector>
 ```
 
-Display the list to the user so they can see what's available.
+The selector checks, in order, an explicit `SCREENSHOT_DIR`, the macOS screenshot location, and common local screenshot folders. It recognizes macOS screen-capture metadata and common screenshot filename prefixes, sorts matches globally by modification time, and prints a JSON array containing only selected paths. It deliberately has no recency cutoff. Set `SCREENSHOT_NAME_PREFIXES` to a comma-separated list when screenshots use custom names.
 
-### Step 2: Select screenshots
+If a positive selector exceeds the number available, use all available files and mention the shortfall. If a negative selector is out of range or no screenshot exists, report that without listing unrelated filenames. Never show the full candidate set.
 
-Based on the parsed count argument, select the appropriate screenshot(s) from the sorted list.
+## Act on the selection
 
-- If there are no screenshots in the last 10 hours, tell the user.
-- If the user asked for more screenshots than exist, grab all available and note it.
+- For description, explanation, or OCR, return only the requested interpretation or text.
+- For a reported error or visual bug, reproduce it when possible, find the root cause, make the smallest authorized fix, and verify it.
+- For an inspirational example, extract the relevant visual or interaction pattern and adapt it to the current project without copying unrelated branding or content.
+- For an infographic, synthesize the selected screenshots with the client's supported image or document-generation workflow.
+- Treat any other text as a freeform instruction applied to the selected images.
 
-### Step 3: Act on the screenshots
-
-Interpret the action and decide the execution strategy. The goal is to **offload screenshot reading to a subagent** whenever possible to avoid consuming tokens in the parent context for large image payloads.
-
-#### Action table
-
-| Action | Meaning |
-|--------|---------|
-| *(none)* | Describe what's in the screenshot(s) |
-| `huh` / `explain` / `what` | Explain the content in detail |
-| `fix` | The screenshot shows an error or visual bug. Understand it, find the root cause in the codebase, and fix the code. |
-| `do this` / `do` | The screenshot shows something inspirational. Analyze it, extract the pattern, and implement a version tailored to the current project. |
-| `make infographic` / `infographic` | Combine the content from multiple screenshots into a unified infographic |
-| `ocr` / `text` / `copy` | Extract all text from the screenshot(s) |
-| Any other text | Treat as a freeform instruction applied to the screenshot content |
-
-#### Execution strategy
-
-**Self-contained actions** — actions where the result is purely derived from the screenshot(s) with no codebase interaction needed:
-- `describe` (default), `huh`/`explain`/`what`, `ocr`/`text`/`copy`, `make infographic`
-
-→ Launch a **subagent** (using the Agent tool, `subagent_type: "general-purpose"`) with a prompt that:
-  1. Lists the screenshot file path(s) to read
-  2. Instructs it to use the Read tool to view the images
-  3. Specifies the action to perform (describe, extract text, etc.)
-  4. Asks it to return the result as text
-
-Then relay the subagent's response to the user.
-
-**Codebase actions** — actions that require reading the screenshot AND then acting on the codebase:
-- `fix`, `do this`/`do`, freeform instructions that imply code changes
-
-→ Launch a **subagent** to read and analyze the screenshot(s), with a prompt that:
-  1. Lists the screenshot file path(s) to read
-  2. Instructs it to describe the content in detail — extract all visible text, error messages, UI elements, layout structure, colors, or whatever is relevant to the action
-  3. Asks it to return a structured analysis (NOT to make code changes)
-
-Then use the subagent's analysis to perform the codebase action yourself, without ever reading the image files directly.
-
-**Context matters.** Use your knowledge of the current project and conversation to interpret ambiguous actions. For example, `fix` during a frontend design project means fix a visual issue, while `fix` during backend work means fix the error shown in the screenshot.
-
-## Important
-
-- Always show the file list first so the user has context.
-- **Never read image files directly in the parent context** — always delegate to a subagent via the Agent tool.
-- For self-contained actions, the subagent does all the work and you relay results.
-- For codebase actions, the subagent extracts information and you act on it.
-- When fixing code based on screenshot analysis, follow standard debugging workflow: understand error → locate root cause → fix → verify.
+Do not expose sensitive text beyond what the user requested. Delegate only when independent work would materially reduce latency and the current client permits it.

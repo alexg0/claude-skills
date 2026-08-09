@@ -1,0 +1,10 @@
+# name                         scope
+crash-diagnostics              global
+devonthink-mcp                 global
+rake-ssh-docker-ops            global
+remote-rsync-migration         global
+ss                             global
+cloudflare-pages               global
+fly-deploy                     global
+jekyll-infra                   global
+jekyll-singlepage              global
