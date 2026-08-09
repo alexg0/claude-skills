@@ -70,10 +70,10 @@
   all three project-owned skill validators passed. Tooling regression tests
   covered install, checkout relocation, uninstall, live and broken
   non-personal-link protection, manifest parity, named import, and symlink
-  rejection. Five private screenshot-selection tests covered global ordering,
+  rejection. Seven private screenshot-selection tests covered global ordering,
   spaced paths, case-insensitive formats, negative selection, filtering of
-  unrelated images, and candidate privacy. Three Function Health selection tests
-  passed, including the unknown
+  unrelated images, custom prefixes, explicit directory selection, and candidate
+  privacy. Three Function Health selection tests passed, including the unknown
   date regression; its transfer-helper test also verified temporary cleanup on
   success and error. Python and JavaScript syntax checks passed. Installer,
   importer, and upstream dry runs plus Git diff checks passed. Cloudflare Pages

@@ -89,6 +89,7 @@ whether it belongs in this shared repository.
 ```bash
 /bin/bash -n install.sh import.sh install-upstream.sh tests/test-tooling.sh
 /bin/bash tests/test-tooling.sh
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v
 for skill in skills/*; do
   [ -f "$skill/SKILL.md" ] || continue
   python3 "${CODEX_HOME:-$HOME/.codex}/skills/.system/skill-creator/scripts/quick_validate.py" "$skill"
