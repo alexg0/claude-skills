@@ -1,95 +1,67 @@
 ---
-description: "Diagnose and fix Cloudflare Pages deployment issues. Use when a Pages deploy fails, build config is wrong, custom domains serve the wrong branch, or wrangler commands error."
-allowed-tools: [Read, Write, Edit, Bash, Glob, Grep, Agent, WebSearch, WebFetch]
-type: command
+name: cloudflare-pages
+description: Create, configure, deploy, and troubleshoot static websites on Cloudflare Pages. Use when the user explicitly asks to publish a static site with Cloudflare Pages, configure a Pages project or custom domain, deploy with Wrangler, or diagnose a Pages build or deployment failure.
 ---
 
-# Cloudflare Pages Troubleshooting
+# Cloudflare Pages
 
-Diagnose and resolve Cloudflare Pages deployment issues for this Jekyll site.
+Create or maintain a Cloudflare Pages deployment without assuming a framework, branch name, output directory, domain, or CI provider.
 
-## Context
+## Discover the project
 
-- This is a Jekyll site deployed to Cloudflare Pages
-- Build output goes to `_site/`
-- Config lives in `wrangler.toml` (repo) and Cloudflare dashboard (remote)
-- Rake tasks in `Rakefile` wrap wrangler commands
-- Intended branch/domain mapping is `master` -> `healthbrief.dev` and `prod` -> `healthbrief.app`
-- See `DEPLOYMENT.md` for full architecture
+1. Read the repository instructions and existing deployment documentation.
+2. Identify the package manager, build command, static output directory, and default branch from project files. Do not guess these values.
+3. Inspect `wrangler.toml`, `wrangler.json`, or `wrangler.jsonc` when present. Preserve unrelated Workers configuration.
+4. Determine whether the project uses Git integration or Direct Upload. Do not mix the two workflows without explaining the change.
+5. Build locally and confirm the output directory contains the expected entry page and assets before configuring Cloudflare.
 
-## Arguments
+## Preflight
 
-$ARGUMENTS
+- Prefer the project's pinned Wrangler command, such as `npx wrangler`, over a global installation.
+- Check the Wrangler version and authentication with `wrangler --version` and `wrangler whoami`.
+- Never print or persist API tokens. If authentication is missing, ask the user to authenticate or provide credentials through the environment configured for their workflow.
+- Treat project creation, deployment, DNS changes, and custom-domain changes as remote mutations. Perform only the changes the user requested.
 
-If arguments are provided, treat them as an error message or description of the problem.
+## Configure
 
-## Step 1: Gather State
+For a Direct Upload project, configure the real output directory when repository-managed Wrangler configuration is useful:
 
-Read these files to understand current config:
-1. `wrangler.toml` — project name, pages_build_output_dir
-2. `DEPLOYMENT.md` — architecture, known issues
-3. `Rakefile` — deploy task definitions
-4. `.github/workflows/build.yml` — CI config
-
-## Step 2: Diagnose
-
-Common failure modes and fixes:
-
-### "Missing entry-point to Worker script or to assets directory"
-- **Cause:** Deploy command is `npx wrangler deploy` (Workers) instead of Pages deploy
-- **Fix:** Clear the deploy command in Cloudflare dashboard, or change to `npx wrangler pages deploy _site`
-- Pages handles deployment from the build output dir automatically — no deploy command needed
-
-### "wrangler deploy on a Pages project" warning
-- **Cause:** Same as above — `wrangler deploy` is for Workers, `wrangler pages deploy` is for Pages
-- **Fix:** Same as above
-
-### Build succeeds but deploy fails
-- Check if deploy command is set (it should be empty for Pages)
-- Check if `pages_build_output_dir` in wrangler.toml matches actual output dir (`_site`)
-- Check if project name in wrangler.toml matches the Cloudflare Pages project name
-
-### Build fails
-- Check Ruby version: `.ruby-version` should match what Cloudflare installs
-- Check env vars: `RUBY_VERSION` and `BUNDLE_FORCE_RUBY_PLATFORM` should be set in Pages settings
-- Try building locally: `bundle exec jekyll build`
-
-### DNS / domain issues
-- Production: `healthbrief.app` should CNAME to `healthbrief-website.pages.dev`
-- Preview: `healthbrief.dev` should target `master.healthbrief-website.pages.dev`
-- A custom domain will only follow a non-production branch if the DNS record is proxied by Cloudflare
-- If `healthbrief.dev` uses external DNS or an unproxied record, expect it to resolve to the Pages production branch instead
-- Branch deployment controls decide whether `master` gets preview builds; they do not map `healthbrief.dev` to `master`
-- Confirm `master` has at least one successful preview deployment before diagnosing DNS
-- Branch aliases are lowercased and non-alphanumeric characters are converted to `-`
-
-## Step 3: Fix
-
-Apply the fix. If it requires a Cloudflare dashboard change, provide:
-1. The exact navigation path in the dashboard
-2. The API curl command as an alternative (uses `PATCH /accounts/{account_id}/pages/projects/{project_name}`)
-
-For `healthbrief.dev` serving production instead of preview, the usual dashboard/DNS fix is:
-1. Workers & Pages -> project -> Custom domains -> confirm `healthbrief.dev` is active
-2. DNS -> `healthbrief.dev` zone -> edit the Pages CNAME target from `healthbrief-website.pages.dev` to `master.healthbrief-website.pages.dev`
-3. Confirm the record remains proxied through Cloudflare
-4. Confirm the Pages production branch is `prod`, not `master`
-
-If it requires a repo change, make the edit and verify with a local build:
-
-```bash
-bundle exec jekyll build
+```toml
+name = "project-name"
+pages_build_output_dir = "dist"
 ```
 
-## Step 4: Verify
+Keep build commands in the project's build tooling or Cloudflare Git-integration settings. Do not add framework-specific environment variables, branch mappings, or DNS targets unless the project requires them.
 
-1. If repo change: confirm local build succeeds
-2. If domain issue: verify the custom domain is active in Pages and the DNS target/proxy status match the intended branch
-3. Provide the user with steps to verify the deploy (push, check Cloudflare dashboard, or manual deploy via `rake cloudflare:deploy_preview`)
+If the Pages project does not exist, create it with the detected project name and production branch:
 
-## Step 5: Report
+```bash
+wrangler pages project create PROJECT_NAME --production-branch BRANCH
+```
 
-Summarize:
-- **Root cause** — what was wrong
-- **Fix applied** — what changed (repo and/or dashboard)
-- **Verification** — how to confirm it's working
+Use `wrangler pages project list --json` to inspect existing projects before changing remote configuration. Inspect project-specific settings in the dashboard or through an authorized API request when the list output is insufficient.
+
+## Deploy
+
+Re-run the local build, then deploy the generated directory:
+
+```bash
+wrangler pages deploy OUTPUT_DIRECTORY --project-name PROJECT_NAME --branch BRANCH
+```
+
+Use the production branch only for an intentional production deployment. Use a feature branch for a preview deployment. `wrangler deploy` targets Workers, not Pages.
+
+For Git-integrated projects, prefer a normal commit-and-push workflow when that is how the repository deploys. Do not add a redundant manual deployment path by default.
+
+## Custom domains
+
+Before changing a domain, inspect the current Pages custom-domain state and Cloudflare DNS record. Confirm the intended project and environment with the user. Do not assume a preview branch should own a production hostname.
+
+When a dashboard-only change is required, give the exact setting and value instead of inventing an API call. Use an API or browser workflow only when the user authorizes the remote change.
+
+## Verify and report
+
+1. Confirm the deployment command completed and capture the resulting Pages URL.
+2. Request the deployed URL and verify the expected page, status code, redirects, and key assets.
+3. For a custom domain, verify DNS and HTTPS after propagation without claiming immediate convergence.
+4. Report the project, branch/environment, build command, output directory, deployed URL, changes made, and any dashboard or DNS work still required.
