@@ -1,3 +1,50 @@
+# Container deployment skill
+
+## Acceptance criteria
+
+- A reusable global skill guides consistent Docker Compose, Dory, and Conductor
+  lifecycle implementations without duplicating Conductor's settings reference.
+- The contract requires Dory 0.4.3 or newer and removes only obsolete port-proxy
+  workarounds while retaining lock-based process coordination.
+- Start, replacement, signal shutdown, explicit stop, archive, ports, readiness,
+  project identity, volume retention, naming migration, and verification have
+  explicit acceptance checks.
+- The skill is client-neutral, listed in the manifest, and passes repository
+  validation.
+
+## Plan
+
+- [x] Review existing container, deployment, Conductor, and skill-authoring guidance.
+- [x] Define the reusable lifecycle contract from the three project implementations.
+- [x] Create the skill, detailed lifecycle reference, UI metadata, and manifest entry.
+- [x] Run skill validation and repository checks.
+- [x] Record verification results and remaining installation step.
+
+## Results
+
+- Added the global `container-deployment` skill with concise operating guidance,
+  aligned Codex UI metadata, and a detailed review matrix for runtime selection,
+  stable project identity, lock-based replacement and stop, detached signal
+  cleanup, volume retention, archive, loopback ports, HTTP readiness, Conductor
+  integration, compatibility aliases, and layered verification.
+- Kept Conductor schema guidance delegated to the bundled Conductor skill and
+  kept remote Rake/SSH and provider-specific deployment operations delegated to
+  their existing skills.
+- An independent read-only forward test applied the skill to BetterTrip and
+  correctly identified the Dory version/context gate, HTTP readiness,
+  lock-aware explicit stop, workspace ID, Conductor availability, and signal
+  coverage gaps without modifying the repository.
+- A live cold-build smoke test then exposed an interrupted Compose child that
+  could outlive its lock-owning parent. The contract now explicitly requires a
+  tracked Compose process group and keeps the inherited lock through child exit
+  and exact-project teardown.
+- Verification passed: all ten skill validators, Bash syntax, tooling regression
+  tests, seven Python tests, stable-checkout installer dry run, upstream installer
+  dry run, and `git diff --check`. The importer behavior is covered by the
+  tooling regression suite; a standalone import dry run requires an unpublished
+  native skill and was therefore not applicable. Live installation remains
+  intentionally deferred until this worktree is merged into the stable checkout.
+
 # Skill ownership cleanup
 
 ## Acceptance criteria
