@@ -1,4 +1,5 @@
 # name                         scope
+container-deployment           global
 crash-diagnostics              global
 devonthink-mcp                 global
 rake-ssh-docker-ops            global

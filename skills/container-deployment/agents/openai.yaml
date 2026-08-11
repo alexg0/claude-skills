@@ -1,0 +1,4 @@
+interface:
+  display_name: "Container Deployment"
+  short_description: "Build consistent Compose and Dory workflows"
+  default_prompt: "Use $container-deployment to implement and verify a consistent container workflow in this project."
