@@ -9,3 +9,5 @@ cloudflare-pages               global
 fly-deploy                     global
 jekyll-infra                   global
 jekyll-singlepage              global
+keybase-push-upstream          global
+record-app-walkthrough         global

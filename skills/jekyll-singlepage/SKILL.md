@@ -1,11 +1,13 @@
 ---
 name: jekyll-singlepage
-description: Create or modernize a single-page Jekyll website with responsive sections, navigation, accessible styling, and verified static output. Use when the user asks to scaffold a one-page Jekyll site or convert an existing Jekyll site to a single-page layout.
+description: Create or modernize a one-page static Jekyll site with responsive sections, anchor navigation, accessible styling, and verified generated HTML. Use only when the user explicitly wants Jekyll for a single-page marketing, portfolio, brochure, event, or informational site. Do not use for blogs, documentation portals, multi-page sites, dynamic web applications, or general frontend work.
 ---
 
-# Jekyll single-page site
+# Jekyll single-page static site
 
-Build a maintainable one-page Jekyll site without pinning a theme, visual style, analytics provider, Ruby version, or JavaScript library unless the project requires it.
+Build a maintainable static page that Jekyll renders to HTML, CSS, and assets. Do not introduce server-side application logic, authentication, databases, runtime rendering, or an API backend. Use another workflow when the requested site needs multiple routed pages or application behavior.
+
+Do not pin a theme, visual style, analytics provider, Ruby version, or JavaScript library unless the project requires it.
 
 ## Inspect the target
 

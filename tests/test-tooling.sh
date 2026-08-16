@@ -149,16 +149,62 @@ HOME="$IMPORT_HOME" /bin/bash "$IMPORT_REPO/import.sh" --force clean-skill >/dev
 [ -f "$IMPORT_REPO/skills/clean-skill/SKILL.md" ]
 [ ! -L "$IMPORT_REPO/skills/clean-skill/SKILL.md" ]
 
+KEYBASE_REMOTE="$TEST_ROOT/keybase-remote.git"
+KEYBASE_WORK="$TEST_ROOT/keybase-work"
+git init --bare -q "$KEYBASE_REMOTE"
+git -C "$KEYBASE_REMOTE" symbolic-ref HEAD refs/heads/trunk
+git clone -q "$KEYBASE_REMOTE" "$KEYBASE_WORK" 2>/dev/null
+git -C "$KEYBASE_WORK" config user.name Test
+git -C "$KEYBASE_WORK" config user.email test@example.invalid
+git -C "$KEYBASE_WORK" commit -q --allow-empty -m initial
+git -C "$KEYBASE_WORK" branch -M trunk
+git -C "$KEYBASE_WORK" push -q -u origin trunk
+git -C "$KEYBASE_WORK" remote set-head origin -a >/dev/null
+git -C "$KEYBASE_WORK" remote set-url --add --push origin keybase://private/test/repo
+/bin/bash "$REPO_ROOT/skills/keybase-push-upstream/scripts/keybase-preflight.sh" \
+  "$KEYBASE_WORK" >"$TEST_ROOT/keybase-preflight.out"
+grep -q 'Keybase remote: origin' "$TEST_ROOT/keybase-preflight.out"
+grep -q 'Base branch: trunk' "$TEST_ROOT/keybase-preflight.out"
+git -C "$KEYBASE_WORK" remote set-url origin keybase://private/test/repo
+GIT_ALLOW_PROTOCOL=file /bin/bash \
+  "$REPO_ROOT/skills/keybase-push-upstream/scripts/keybase-preflight.sh" \
+  "$KEYBASE_WORK" origin >"$TEST_ROOT/keybase-preflight-fallback.out"
+grep -q 'Base branch: trunk' "$TEST_ROOT/keybase-preflight-fallback.out"
+
 UPSTREAM_INSTALLER="$TEST_ROOT/install-upstream.sh"
 cp "$REPO_ROOT/install-upstream.sh" "$UPSTREAM_INSTALLER"
 GSTACK_DIR="$TEST_ROOT/custom-gstack" HOME="$TEST_HOME" \
   /bin/bash "$UPSTREAM_INSTALLER" --dry-run --only gstack >"$TEST_ROOT/upstream.out"
 grep -q "git clone .* $TEST_ROOT/custom-gstack" "$TEST_ROOT/upstream.out"
 grep -q 'setup --host codex' "$TEST_ROOT/upstream.out"
+GSTACK_DIR="$TEST_ROOT/custom-gstack" HOME="$TEST_HOME" \
+  /bin/bash "$UPSTREAM_INSTALLER" --dry-run --only ponytail >"$TEST_ROOT/ponytail.out"
+grep -q "skills add DietrichGebert/ponytail .*--skill.*\\*.*-a claude-code -a codex" \
+  "$TEST_ROOT/ponytail.out"
+GSTACK_DIR="$TEST_ROOT/custom-gstack" HOME="$TEST_HOME" \
+  /bin/bash "$UPSTREAM_INSTALLER" --dry-run --only unlazy >"$TEST_ROOT/unlazy.out"
+grep -q "skills add Leonxlnx/unlazy .*--skill.*\\*.*-a claude-code -a codex" \
+  "$TEST_ROOT/unlazy.out"
+GSTACK_DIR="$TEST_ROOT/custom-gstack" HOME="$TEST_HOME" \
+  /bin/bash "$UPSTREAM_INSTALLER" --dry-run --only canonical >"$TEST_ROOT/canonical.out"
+grep -q "skills add vercel-labs/agent-browser .*--skill agent-browser" \
+  "$TEST_ROOT/canonical.out"
+grep -q "skills add netresearch/context7-skill .*--skill context7" \
+  "$TEST_ROOT/canonical.out"
+grep -Fq -- '--skill Frontend\ Responsive\ Design\ Standards' \
+  "$TEST_ROOT/canonical.out"
+if grep -q 'gemini-computer-use' "$TEST_ROOT/canonical.out"; then
+  echo "Canonical global install unexpectedly includes gemini-computer-use" >&2
+  exit 1
+fi
+grep -q "skills add openai/skills .*--skill gh-address-comments --skill gh-fix-ci" \
+  "$TEST_ROOT/canonical.out"
+grep -q "skills add vercel-labs/agent-skills .*--skill vercel-react-best-practices" \
+  "$TEST_ROOT/canonical.out"
 if /bin/bash "$UPSTREAM_INSTALLER" --dry-run --only invalid >"$TEST_ROOT/upstream-invalid.out" 2>&1; then
   echo "Upstream installer unexpectedly accepted an invalid package" >&2
   exit 1
 fi
-grep -q -- '--only must be gstack or gsd' "$TEST_ROOT/upstream-invalid.out"
+grep -q -- 'invalid --only package: invalid' "$TEST_ROOT/upstream-invalid.out"
 
 echo "tooling regression tests passed"

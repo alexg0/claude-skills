@@ -1,0 +1,4 @@
+interface:
+  display_name: "Record App Walkthrough"
+  short_description: "Record polished, repeatable app demo videos"
+  default_prompt: "Use $record-app-walkthrough to record a polished walkthrough video of this app."

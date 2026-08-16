@@ -14,13 +14,30 @@ live in that project's `.agents/skills` directory instead.
 | `~/.claude/skills`, `~/.codex/skills` | Generated links only |
 | Project links for centrally managed skills | The target project's `.agents/skills` directory |
 | Claude/Codex instruction files | Dotfiles |
-| gstack and GSD | Their upstream installers |
+| Public third-party skill packages | Their upstream installers |
 | Bundled, official, marketplace, and plugin skills | Their package or application |
 | Tool-specific skills such as `pdf-generation` | The tool's upstream repository |
 
 Do not copy upstream or official skills here. In particular, use Conductor's
 bundled skill, the official general PDF plugin, md2pdf's own PDF-generation
 skill, and gstack's review/ship workflows instead of maintaining local copies.
+
+## Workflow orchestration policy
+
+gstack is the default planning, review, QA, and shipping workflow. Use its
+workflow unless the current project explicitly enables GSD.
+
+Treat GSD as project-specific and disabled by default even when its commands
+are installed globally. A project enables GSD when its checked-in instructions
+say to use GSD or the user explicitly invokes a GSD workflow for that project.
+Do not create `.planning/` state or select a `gsd-*` command merely because a
+task is large.
+
+Once GSD is enabled, let it own that project's roadmap, phase planning,
+execution, verification, review, and shipping lifecycle. Do not run the
+equivalent gstack lifecycle on the same work unless the user explicitly asks
+for it. Individually requested gstack specialist tools may still be used when
+they do not duplicate GSD's project state.
 
 ## Repository layout
 
@@ -30,7 +47,7 @@ skills/<name>/agents/openai.yaml  optional Codex UI metadata
 skills.manifest         installation scope: global or project
 install.sh              install/remove personal skill links
 import.sh               copy unpublished native skills into this repo
-install-upstream.sh     install/update gstack and GSD from upstream
+install-upstream.sh     install/update upstream-managed skill packages
 ```
 
 Every `SKILL.md` has exactly two YAML frontmatter fields:
@@ -124,11 +141,33 @@ Preview or run the maintained upstream installation commands:
 ./install-upstream.sh
 ./install-upstream.sh --only gstack
 ./install-upstream.sh --only gsd
+./install-upstream.sh --only ponytail
+./install-upstream.sh --only unlazy
+./install-upstream.sh --only canonical
 ```
 
 The script clones or fast-forwards gstack and runs its Claude and Codex setup.
-It installs GSD globally for each client through `get-shit-done-cc`. Their files
+It also installs GSD globally for each client through `get-shit-done-cc`, making
+the commands available without enabling GSD for every project. Their files
 remain outside this repository and must not be added to `skills.manifest`.
+It installs Ponytail's skill collection and Unlazy globally for both clients
+through the upstream `skills` CLI; those files are likewise upstream-owned.
+The `canonical` group installs Agent Browser, Context7, Frontend Responsive
+Design Standards, OpenAI's GitHub workflow skills, and Vercel's React guidance
+from their reviewed public sources. Each package can also be selected
+individually; run `./install-upstream.sh --help` for the package names.
+
+Gemini Computer Use is not part of the global set. It controls a browser and
+uses a project API key, so install it only inside a project that explicitly
+needs to build or run a Gemini computer-use integration:
+
+```bash
+npx -y skills add am-will/codex-skills \
+  -a claude-code -a codex -y --skill gemini-computer-use
+```
+
+Run that command from the target project root without `-g`; the upstream
+package remains the source of truth.
 By default gstack's upstream clone lives at `~/.claude/skills/gstack`, following
 its global installation convention, and its setup generates Codex runtime
 adapters from that clone. Set `GSTACK_DIR` to use another upstream-owned clone.

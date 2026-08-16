@@ -1,9 +1,9 @@
 ---
 name: jekyll-infra
-description: Add or repair continuous integration, build verification, linting, and dependency conventions for an existing Jekyll project. Use when the user asks to establish reliable Jekyll CI or fix its automated build and quality checks.
+description: Add or repair continuous integration, generated-output verification, linting, and dependency conventions for an existing static Jekyll site. Use only when the repository already builds static pages with Jekyll and the user asks to establish or repair its automated build and quality checks. Do not use for dynamic web applications or non-Jekyll frontend projects.
 ---
 
-# Jekyll infrastructure
+# Jekyll static-site infrastructure
 
 Add the smallest CI and quality setup that matches the existing project instead of imposing a fixed Rakefile, deployment method, branch, Ruby version, or lint configuration.
 

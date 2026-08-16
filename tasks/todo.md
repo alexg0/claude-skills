@@ -1,3 +1,102 @@
+# Keybase generalization and walkthrough review
+
+## Acceptance criteria
+
+- The Keybase workflow contains no user-specific repository or worktree
+  assumptions.
+- The Keybase remote and its default branch are discovered or supplied
+  explicitly rather than guessed.
+- Walkthrough helpers are exercised before any complexity is removed.
+- Historically settled container, provider, and Jekyll decisions remain
+  unchanged.
+
+## Results
+
+- Replaced `origin` and `master` assumptions with deterministic Keybase remote
+  and advertised-default-branch discovery, with explicit overrides for
+  ambiguous repositories.
+- Added a regression fixture using a Keybase push URL and a `trunk` default
+  branch.
+- Exercised walkthrough conversion, metadata validation, evenly spaced frame
+  sampling, visual frame output, minimum-duration rejection, and collision
+  protection. The focused Ponytail review found no safe deletion that retained
+  those behaviors, so the walkthrough skill remains unchanged.
+
+# Demote Gemini Computer Use
+
+## Acceptance criteria
+
+- Gemini Computer Use is absent from the maintained global installation set.
+- Its upstream source remains documented for explicit project-local use.
+- Existing global links and shared source-lock state are removed without
+  disturbing Frontend Responsive Design Standards from the same repository.
+
+## Results
+
+- Removed Gemini Computer Use from the canonical global installer group.
+- Documented a project-local upstream installation command without `-g`.
+- Added regression coverage that rejects Gemini Computer Use in the canonical
+  global installer output.
+
+# Workflow orchestration policy
+
+## Acceptance criteria
+
+- gstack is documented as the default project workflow.
+- Global GSD installation is distinguished from project-level enablement.
+- GSD is used only when project instructions enable it or the user explicitly
+  invokes it for that project.
+- A GSD-enabled project has one lifecycle owner rather than duplicate gstack
+  planning, review, and shipping state.
+
+## Results
+
+- Documented gstack as the default workflow in both the operator README and
+  repository maintenance contract.
+- Kept GSD upstream-installed but disabled by default at project scope.
+- Defined explicit project instructions or direct user invocation as the GSD
+  enablement boundary, and prohibited automatic `.planning/` creation.
+
+# Upstream skill installer reconciliation
+
+## Acceptance criteria
+
+- Ponytail and Unlazy have reproducible upstream-owned install commands for
+  both Claude Code and Codex.
+- The repository manifest is compared with live native skill roots without
+  adopting bundled, plugin-managed, or unrelated skills.
+- Installer syntax, dry runs, and tooling regression tests pass.
+- Remaining ownership or installation differences are presented for explicit
+  reconciliation rather than changed implicitly.
+
+## Plan
+
+- [x] Review repository ownership rules, prior lessons, and installer tests.
+- [x] Compare `skills.manifest` with live Claude, Codex, and shared skill roots.
+- [x] Add Ponytail and Unlazy to the upstream installer and documentation.
+- [x] Run syntax, dry-run, regression, and diff verification.
+- [x] Record results and present remaining reconciliation choices.
+
+## Results
+
+- Added Ponytail, Unlazy, and a canonical public-skill group to the upstream
+  installer, with focused package selectors and dry-run regression coverage.
+- Imported `keybase-push-upstream` and `record-app-walkthrough` as global
+  personal skills and installed all twelve manifest entries into Claude Code
+  and Codex.
+- Replaced untracked public copies with source-locked upstream installations.
+  Removed retired am-will skills, older duplicate frontend/OpenAI docs skills,
+  the OPP-OS-specific PRD helper, and the obsolete Claude-only Jekyll builder
+  from active roots.
+- Preserved every replaced directory under
+  `/tmp/skills-reconcile-20260816.hDwWIb` for recovery.
+- Verification passed: Bash syntax, tooling regression tests, seven Python
+  tests, all twelve skill validators, personal and upstream dry runs, live link
+  and upstream lock checks, and `git diff --check`.
+- The upstream security scan rated Gemini Computer Use as critical risk because
+  it controls a browser and uses an API key. It remained installed at this
+  point and was later demoted to explicit project-local use.
+
 # Container deployment skill
 
 ## Acceptance criteria

@@ -73,6 +73,20 @@ Do not add client-specific installation modes. If a workflow cannot remain
 client-neutral, keep the adapter outside the canonical skill or reconsider
 whether it belongs in this shared repository.
 
+## Workflow orchestration
+
+- Use gstack as the default project workflow for planning, review, QA, and
+  shipping.
+- Treat GSD as disabled unless the current project's checked-in instructions
+  explicitly enable it or the user explicitly invokes a GSD workflow for that
+  project. Global installation makes GSD available; it does not enable it.
+- Do not create `.planning/` state or invoke `gsd-*` automatically based only
+  on project size or task complexity.
+- In a GSD-enabled project, let GSD own roadmap, phase, execution,
+  verification, review, and shipping state. Do not mix in the equivalent
+  gstack lifecycle unless the user asks. Explicitly requested gstack
+  specialist tools remain available when they do not duplicate that state.
+
 ## Required workflow
 
 1. Find and remove redundant or obsolete skills before adding new ones.

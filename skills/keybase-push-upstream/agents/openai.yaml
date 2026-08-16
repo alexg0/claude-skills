@@ -1,0 +1,4 @@
+interface:
+  display_name: "Keybase Push Upstream"
+  short_description: "Ship Keybase git repos without GitHub PRs"
+  default_prompt: "Use $keybase-push-upstream to push this Keybase-backed repository upstream safely."
