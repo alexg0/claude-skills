@@ -152,12 +152,10 @@ The script clones or fast-forwards gstack and runs its Claude and Codex setup.
 It also installs GSD globally for each client through `get-shit-done-cc`, making
 the commands available without enabling GSD for every project. Their files
 remain outside this repository and must not be added to `skills.manifest`.
-It installs Ponytail's skill collection, Unlazy, and HERDR globally for both
-clients through the upstream `skills` CLI; those files are likewise
+It installs Ponytail's skill collection, Unlazy, kun, and HERDR globally for
+both clients through the upstream `skills` CLI; those files are likewise
 upstream-owned. HERDR is selected specifically from `herdrdev/herdr` rather
 than installing every skill in that repository.
-It installs kun globally for both clients through the upstream `skills` CLI;
-its files are likewise upstream-owned.
 The `canonical` group installs Agent Browser, Context7, Frontend Responsive
 Design Standards, OpenAI's GitHub workflow skills, and Vercel's React guidance
 from their reviewed public sources. Each package can also be selected
