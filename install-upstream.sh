@@ -14,13 +14,13 @@ usage() {
 Usage: ./install-upstream.sh [--dry-run] [--only PACKAGE]
 
 Installs or updates:
-  gstack, GSD, Ponytail, Unlazy
+  gstack, GSD, Ponytail, Unlazy, HERDR
   kun
   agent-browser, context7, frontend-responsive-ui
   gh-address-comments, gh-fix-ci, vercel-react-best-practices
 
 PACKAGE is one of:
-  gstack, gsd, ponytail, unlazy, kun, agent-browser, context7, codex-skills,
+  gstack, gsd, ponytail, unlazy, kun, herdr, agent-browser, context7, codex-skills,
   github-workflows, vercel-react, canonical
 
 Set GSTACK_DIR to override the upstream clone location. The default follows
@@ -43,7 +43,7 @@ while [ "$#" -gt 0 ]; do
 done
 
 case "$ONLY" in
-  all|gstack|gsd|ponytail|unlazy|kun|agent-browser|context7|codex-skills|github-workflows|vercel-react|canonical) ;;
+  all|gstack|gsd|ponytail|unlazy|kun|herdr|agent-browser|context7|codex-skills|github-workflows|vercel-react|canonical) ;;
   *) echo "Error: invalid --only package: $ONLY" >&2; exit 1 ;;
 esac
 
@@ -123,6 +123,10 @@ install_kun() {
   install_selected_skill_repo "kun" kunchenguid/kun kun
 }
 
+install_herdr() {
+  install_selected_skill_repo "HERDR" herdrdev/herdr herdr
+}
+
 install_agent_browser() {
   install_selected_skill_repo "Agent Browser" vercel-labs/agent-browser agent-browser
 }
@@ -155,12 +159,13 @@ install_canonical_skills() {
 }
 
 case "$ONLY" in
-  all) install_gstack; install_gsd; install_ponytail; install_unlazy; install_kun; install_canonical_skills ;;
+  all) install_gstack; install_gsd; install_ponytail; install_unlazy; install_kun; install_herdr; install_canonical_skills ;;
   gstack) install_gstack ;;
   gsd) install_gsd ;;
   ponytail) install_ponytail ;;
   unlazy) install_unlazy ;;
   kun) install_kun ;;
+  herdr) install_herdr ;;
   agent-browser) install_agent_browser ;;
   context7) install_context7 ;;
   codex-skills) install_codex_skills ;;
