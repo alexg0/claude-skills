@@ -182,9 +182,13 @@ GSTACK_DIR="$TEST_ROOT/custom-gstack" HOME="$TEST_HOME" \
 grep -q "skills add DietrichGebert/ponytail .*--skill.*\\*.*-a claude-code -a codex" \
   "$TEST_ROOT/ponytail.out"
 GSTACK_DIR="$TEST_ROOT/custom-gstack" HOME="$TEST_HOME" \
-  /bin/bash "$UPSTREAM_INSTALLER" --dry-run --only unlazy >"$TEST_ROOT/unlazy.out"
+/bin/bash "$UPSTREAM_INSTALLER" --dry-run --only unlazy >"$TEST_ROOT/unlazy.out"
 grep -q "skills add Leonxlnx/unlazy .*--skill.*\\*.*-a claude-code -a codex" \
   "$TEST_ROOT/unlazy.out"
+
+/bin/bash "$UPSTREAM_INSTALLER" --dry-run --only kun >"$TEST_ROOT/kun.out"
+grep -q "skills add kunchenguid/kun .*--skill kun -a claude-code -a codex" \
+  "$TEST_ROOT/kun.out"
 GSTACK_DIR="$TEST_ROOT/custom-gstack" HOME="$TEST_HOME" \
   /bin/bash "$UPSTREAM_INSTALLER" --dry-run --only canonical >"$TEST_ROOT/canonical.out"
 grep -q "skills add vercel-labs/agent-browser .*--skill agent-browser" \

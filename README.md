@@ -143,6 +143,7 @@ Preview or run the maintained upstream installation commands:
 ./install-upstream.sh --only gsd
 ./install-upstream.sh --only ponytail
 ./install-upstream.sh --only unlazy
+./install-upstream.sh --only kun
 ./install-upstream.sh --only canonical
 ```
 
@@ -152,6 +153,8 @@ the commands available without enabling GSD for every project. Their files
 remain outside this repository and must not be added to `skills.manifest`.
 It installs Ponytail's skill collection and Unlazy globally for both clients
 through the upstream `skills` CLI; those files are likewise upstream-owned.
+It installs kun globally for both clients through the upstream `skills` CLI;
+its files are likewise upstream-owned.
 The `canonical` group installs Agent Browser, Context7, Frontend Responsive
 Design Standards, OpenAI's GitHub workflow skills, and Vercel's React guidance
 from their reviewed public sources. Each package can also be selected
