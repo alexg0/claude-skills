@@ -144,6 +144,7 @@ Preview or run the maintained upstream installation commands:
 ./install-upstream.sh --only ponytail
 ./install-upstream.sh --only unlazy
 ./install-upstream.sh --only kun
+./install-upstream.sh --only herdr
 ./install-upstream.sh --only canonical
 ```
 
@@ -151,8 +152,10 @@ The script clones or fast-forwards gstack and runs its Claude and Codex setup.
 It also installs GSD globally for each client through `get-shit-done-cc`, making
 the commands available without enabling GSD for every project. Their files
 remain outside this repository and must not be added to `skills.manifest`.
-It installs Ponytail's skill collection and Unlazy globally for both clients
-through the upstream `skills` CLI; those files are likewise upstream-owned.
+It installs Ponytail's skill collection, Unlazy, and HERDR globally for both
+clients through the upstream `skills` CLI; those files are likewise
+upstream-owned. HERDR is selected specifically from `herdrdev/herdr` rather
+than installing every skill in that repository.
 It installs kun globally for both clients through the upstream `skills` CLI;
 its files are likewise upstream-owned.
 The `canonical` group installs Agent Browser, Context7, Frontend Responsive

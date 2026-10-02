@@ -1,3 +1,46 @@
+# Test performance skill
+
+## Acceptance criteria
+
+- A reusable global skill captures the general test-speedup workflow distilled
+  from the measured August 15–16 work without project-specific names, paths, or
+  framework assumptions.
+- The workflow preserves behavioral coverage while addressing repeated setup,
+  subprocess, fixture, toolchain, I/O, and concurrency overhead.
+- Every supported coverage dimension is measured before and after, may not
+  regress, and may not be weakened through lower thresholds or broader exclusions.
+- Measurement, correctness companions, performance gates, failure semantics,
+  and reporting are explicit.
+- The skill is client-neutral, listed in the manifest, and passes repository
+  validation.
+
+## Plan
+
+- [x] Review the source optimization series, audit follow-ups, and recorded lessons.
+- [x] Check installed and upstream-owned capabilities for overlap.
+- [x] Create `speed-up-tests`, aligned UI metadata, and the global manifest entry.
+- [x] Run skill and repository verification.
+- [x] Record results and the intentionally deferred live-installation step.
+
+## Results
+
+- Added the client-neutral `speed-up-tests` skill and classified it as global.
+  It covers baseline distributions, mandatory before/after coverage with no
+  regression or weakened thresholds, hotspot localization, repeated harness
+  work, reusable stand-ins, replay seams, sourced scenario safety, bounded
+  concurrency, correctness companions, and local/CI performance gates.
+- Applied the workflow back to the source test-speedup series. Fresh checks pass
+  449 randomized RSpec examples; the performance gate reports a 1.556-second
+  median and 1.588-second maximum against the original 19.63-second historical
+  baseline. Coverage passes at 89.54% Ruby lines, 68.11% Ruby branches, 65.0%
+  Python lines, and 66.9% Go statements, preserving or improving every baseline.
+- Verification passed all thirteen skill validators, Bash syntax, tooling
+  regression tests, seven Python tests, the personal and upstream installer dry
+  runs, and `git diff --check`. The importer dry run correctly refused the new
+  name because its canonical source already exists in this repository.
+- Live Claude and Codex links remain intentionally deferred until this source
+  change is committed and merged into the stable checkout, per repository policy.
+
 # Keybase generalization and walkthrough review
 
 ## Acceptance criteria

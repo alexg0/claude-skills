@@ -1,6 +1,7 @@
 # name                         scope
 container-deployment           global
 crash-diagnostics              global
+speed-up-tests                 global
 devonthink-mcp                 global
 rake-ssh-docker-ops            global
 remote-rsync-migration         global

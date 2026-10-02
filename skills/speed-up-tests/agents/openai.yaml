@@ -1,0 +1,4 @@
+interface:
+  display_name: "Speed Up Tests"
+  short_description: "Reduce test runtime without losing coverage"
+  default_prompt: "Use $speed-up-tests to profile this test suite and safely reduce its runtime."
