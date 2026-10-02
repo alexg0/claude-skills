@@ -185,6 +185,7 @@ copy it into this manifest.
 ```bash
 /bin/bash -n install.sh import.sh install-upstream.sh tests/test-tooling.sh
 /bin/bash tests/test-tooling.sh
+python3 -m pip install PyYAML
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v
 for skill in skills/*; do
   [ -f "$skill/SKILL.md" ] || continue
