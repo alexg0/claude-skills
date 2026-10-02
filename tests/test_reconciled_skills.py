@@ -6,7 +6,10 @@ import subprocess
 import tempfile
 import unittest
 
-import yaml
+try:
+    import yaml
+except ImportError:
+    yaml = None
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -39,6 +42,7 @@ class ReconciledSkillsTest(unittest.TestCase):
                                 "-g", "-a", "claude-code", "-a", "codex", "-y", "--skill", skill,
                             ])
 
+    @unittest.skipIf(yaml is None, "PyYAML is not installed")
     def test_manifest_and_skill_metadata(self):
         entries = [line.split() for line in (ROOT / "skills.manifest").read_text().splitlines()
                    if line.strip() and not line.lstrip().startswith("#")]

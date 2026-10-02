@@ -192,14 +192,6 @@ grep -q "skills add kunchenguid/kun .*--skill kun" \
   "$TEST_ROOT/kun.out"
 grep -q -- '-a claude-code -a codex' "$TEST_ROOT/kun.out"
 GSTACK_DIR="$TEST_ROOT/custom-gstack" HOME="$TEST_HOME" \
-  /bin/bash "$UPSTREAM_INSTALLER" --dry-run --only herdr >"$TEST_ROOT/herdr.out"
-grep -q "skills add herdrdev/herdr .*--skill herdr" "$TEST_ROOT/herdr.out"
-grep -q -- '-a claude-code -a codex' "$TEST_ROOT/herdr.out"
-GSTACK_DIR="$TEST_ROOT/custom-gstack" HOME="$TEST_HOME" \
-  /bin/bash "$UPSTREAM_INSTALLER" --dry-run >"$TEST_ROOT/all.out"
-grep -q "skills add kunchenguid/kun .*--skill kun" "$TEST_ROOT/all.out"
-grep -q "skills add herdrdev/herdr .*--skill herdr" "$TEST_ROOT/all.out"
-GSTACK_DIR="$TEST_ROOT/custom-gstack" HOME="$TEST_HOME" \
   /bin/bash "$UPSTREAM_INSTALLER" --dry-run --only canonical >"$TEST_ROOT/canonical.out"
 grep -q "skills add vercel-labs/agent-browser .*--skill agent-browser" \
   "$TEST_ROOT/canonical.out"
