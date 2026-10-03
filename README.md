@@ -19,25 +19,20 @@ live in that project's `.agents/skills` directory instead.
 | Tool-specific skills such as `pdf-generation` | The tool's upstream repository |
 
 Do not copy upstream or official skills here. In particular, use Conductor's
-bundled skill, the official general PDF plugin, md2pdf's own PDF-generation
-skill, and gstack's review/ship workflows instead of maintaining local copies.
+bundled skill, the official general PDF plugin, and md2pdf's own PDF-generation
+skill instead of maintaining local copies.
 
 ## Workflow orchestration policy
 
-gstack is the default planning, review, QA, and shipping workflow. Use its
-workflow unless the current project explicitly enables GSD.
+GSD and gstack are disabled by default, including global installation and
+updates. Use the current project's checked-in workflow and verification rules.
+Re-enable either package explicitly using the upstream commands below, then
+invoke it only when the project instructions or user request call for it.
 
-Treat GSD as project-specific and disabled by default even when its commands
-are installed globally. A project enables GSD when its checked-in instructions
-say to use GSD or the user explicitly invokes a GSD workflow for that project.
-Do not create `.planning/` state or select a `gsd-*` command merely because a
-task is large.
-
-Once GSD is enabled, let it own that project's roadmap, phase planning,
-execution, verification, review, and shipping lifecycle. Do not run the
-equivalent gstack lifecycle on the same work unless the user explicitly asks
-for it. Individually requested gstack specialist tools may still be used when
-they do not duplicate GSD's project state.
+When GSD is enabled, let it own that project's roadmap, phase planning,
+execution, verification, review, and shipping lifecycle. Do not run an
+equivalent gstack lifecycle on the same work unless explicitly requested.
+Do not create `.planning/` state merely because a task is large.
 
 ## Repository layout
 
@@ -139,8 +134,6 @@ Preview or run the maintained upstream installation commands:
 ```bash
 ./install-upstream.sh --dry-run
 ./install-upstream.sh
-./install-upstream.sh --only gstack
-./install-upstream.sh --only gsd
 ./install-upstream.sh --only ponytail
 ./install-upstream.sh --only unlazy
 ./install-upstream.sh --only kun
@@ -148,14 +141,25 @@ Preview or run the maintained upstream installation commands:
 ./install-upstream.sh --only canonical
 ```
 
-The script clones or fast-forwards gstack and runs its Claude and Codex setup.
-It also installs GSD globally for each client through `get-shit-done-cc`, making
-the commands available without enabling GSD for every project. Their files
-remain outside this repository and must not be added to `skills.manifest`.
-It installs Ponytail's skill collection, Unlazy, kun, and HERDR globally for
-both clients through the upstream `skills` CLI; those files are likewise
-upstream-owned. HERDR is selected specifically from `herdrdev/herdr` rather
-than installing every skill in that repository.
+The default install/update excludes GSD and gstack. To re-enable and update
+either package for Claude and Codex, run from the stable checkout:
+
+```bash
+./install-upstream.sh --only gsd
+./install-upstream.sh --only gstack
+```
+
+The explicit gstack selection clones or fast-forwards its source and runs both
+client setup commands. The explicit GSD selection installs through
+`get-shit-done-cc` for both clients, then moves any `gsd-join-discord` registration
+into `~/.local/share/skill-retirement/gsd-invite-<timestamp>-<pid>/` with a
+`manifest.tsv`. Source checkouts and runtime state remain upstream-owned.
+Neither package belongs in `skills.manifest`.
+
+Ponytail installs only `ponytail`, `ponytail-audit`, `ponytail-debt`, and
+`ponytail-review`; the `ponytail-help` and `ponytail-gain` cards are excluded.
+Unlazy, kun, and HERDR are also installed for both clients through the upstream
+`skills` CLI. HERDR is selected specifically from `herdrdev/herdr`.
 The `canonical` group installs Agent Browser, Context7, Frontend Responsive
 Design Standards, OpenAI's GitHub workflow skills, and Vercel's React guidance
 from their reviewed public sources. Each package can also be selected

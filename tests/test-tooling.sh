@@ -179,8 +179,20 @@ grep -q "git clone .* $TEST_ROOT/custom-gstack" "$TEST_ROOT/upstream.out"
 grep -q 'setup --host codex' "$TEST_ROOT/upstream.out"
 GSTACK_DIR="$TEST_ROOT/custom-gstack" HOME="$TEST_HOME" \
   /bin/bash "$UPSTREAM_INSTALLER" --dry-run --only ponytail >"$TEST_ROOT/ponytail.out"
-grep -q "skills add DietrichGebert/ponytail .*--skill.*\\*.*-a claude-code -a codex" \
+grep -q 'skills add DietrichGebert/ponytail .*--skill ponytail --skill ponytail-audit --skill ponytail-debt --skill ponytail-review' \
   "$TEST_ROOT/ponytail.out"
+if grep -Eq 'ponytail-help|ponytail-gain|\\\*' "$TEST_ROOT/ponytail.out"; then
+  echo "Ponytail install unexpectedly includes retired cards or a wildcard" >&2
+  exit 1
+fi
+HOME="$TEST_HOME" /bin/bash "$UPSTREAM_INSTALLER" --dry-run >"$TEST_ROOT/default.out"
+if grep -Eq 'get-shit-done|garrytan/gstack|setup --host codex' "$TEST_ROOT/default.out"; then
+  echo "Default upstream install unexpectedly enables GSD or gstack" >&2
+  exit 1
+fi
+HOME="$TEST_HOME" /bin/bash "$UPSTREAM_INSTALLER" --dry-run --only gsd >"$TEST_ROOT/gsd.out"
+grep -q 'get-shit-done-cc@latest --claude --global' "$TEST_ROOT/gsd.out"
+grep -q 'get-shit-done-cc@latest --codex --global' "$TEST_ROOT/gsd.out"
 GSTACK_DIR="$TEST_ROOT/custom-gstack" HOME="$TEST_HOME" \
 /bin/bash "$UPSTREAM_INSTALLER" --dry-run --only unlazy >"$TEST_ROOT/unlazy.out"
 grep -q "skills add Leonxlnx/unlazy .*--skill.*\\*.*-a claude-code -a codex" \
