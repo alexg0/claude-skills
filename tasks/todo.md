@@ -1,3 +1,55 @@
+# Small upstream cleanup and workflow disablement
+
+## Goal and acceptance criteria
+
+- Exclude GSD and gstack from default installation and updates; preserve explicit
+  opt-in support for both clients and document re-enablement.
+- Select retained Ponytail skills and retire the three help/promo cards without
+  deleting source checkouts, runtime state, or caches.
+- Apply no-mistakes consolidation only with verified updater link support.
+- Retire responsive standards only if adapt plus project checks preserves all
+  useful criteria.
+- Quarantine current registrations with a private manifest and restore commands;
+  report settings wiring separately without changing settings or dotfiles.
+
+## Discoveries
+
+- GSD and gstack installation/update paths are confined to install-upstream.sh;
+  both were part of its default `all` selection.
+- The GSD opt-in installer recreates the invite card, so it now quarantines that
+  card after installation, including broken symlinks without following targets.
+- C1 is deferred: the installed no-mistakes skill copies are byte-identical, but
+  the installed updater is a compiled executable and link compatibility has not
+  been verified. Preserving the working copies satisfies the conditional scope.
+- C2 is deferred: responsive standards includes project breakpoint reuse,
+  relative units, typography/contrast criteria, Android touch sizing and spacing,
+  and explicit overflow checks absent from adapt. This repository has no owning
+  frontend project checks into which those criteria can safely be folded.
+
+## Verification checklist
+
+- [x] Shell syntax and tooling regression tests.
+- [x] Python tests, including invite quarantine with directory and symlink fixtures.
+- [x] All retained skill validators and installer dry runs.
+- [x] Diff whitespace check and live registration quarantine verification.
+
+## Results
+
+- Default install/update excludes GSD and gstack; both remain explicit opt-ins
+  for Claude and Codex. The Ponytail selection excludes its two promo cards.
+- Explicit GSD installation quarantines the regenerated invite card and records
+  source/destination paths without following symlinks.
+- Conditional C1 and C2 remain deferred for the reasons above.
+- Current workflow and promo-card registrations were quarantined by moving the
+  entries themselves. Source checkouts, runtime state, caches, and settings were
+  preserved; private inventory, manifest, restore commands, and settings follow-up
+  references remain outside public commits.
+- Passed tooling regression tests, 11 Python tests, all 13 retained skill
+  validators, Bash syntax, default and personal installer dry runs, and diff
+  whitespace checks. Live moves were verified by inode and symlink target.
+- Upstream installers were not executed against the live machine. Existing
+  settings hooks/statusline still need separately authorized follow-up.
+
 # Test performance skill
 
 ## Acceptance criteria

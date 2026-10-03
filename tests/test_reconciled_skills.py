@@ -42,6 +42,46 @@ class ReconciledSkillsTest(unittest.TestCase):
                                 "-g", "-a", "claude-code", "-a", "codex", "-y", "--skill", skill,
                             ])
 
+    def test_gsd_opt_in_quarantines_invite_registrations(self):
+        with tempfile.TemporaryDirectory() as directory:
+            home = Path(directory)
+            binary = home / "bin"
+            binary.mkdir()
+            npx = binary / "npx"
+            npx.write_text("#!/bin/sh\nexit 0\n")
+            npx.chmod(0o755)
+            source = home / "upstream-invite"
+            source.mkdir()
+            (source / "SKILL.md").write_text("upstream source must survive")
+            for client in (".claude", ".agents", ".codex"):
+                root = home / client / "skills"
+                root.mkdir(parents=True)
+                invite = root / "gsd-join-discord"
+                if client == ".claude":
+                    invite.symlink_to(source, target_is_directory=True)
+                elif client == ".codex":
+                    invite.symlink_to(home / "missing-source")
+                else:
+                    invite.mkdir()
+                    (invite / "SKILL.md").write_text("invite")
+                (root / "gsd-help").mkdir()
+            env = dict(os.environ, HOME=str(home), PATH=str(binary) + os.pathsep + os.environ["PATH"])
+            command = ["bash", str(ROOT / "install-upstream.sh"), "--only", "gsd"]
+            subprocess.run(command + ["--dry-run"], env=env, capture_output=True, check=True)
+            self.assertTrue(os.path.lexists(home / ".codex/skills/gsd-join-discord"))
+            self.assertFalse((home / ".local/share/skill-retirement").exists())
+            subprocess.run(command, env=env, capture_output=True, check=True)
+            retirements = list((home / ".local/share/skill-retirement").iterdir())
+            self.assertEqual(len(retirements), 1)
+            retirement = retirements[0]
+            self.assertEqual(len((retirement / "manifest.tsv").read_text().splitlines()), 3)
+            for client in (".claude", ".agents", ".codex"):
+                self.assertFalse(os.path.lexists(home / client / "skills/gsd-join-discord"))
+                self.assertTrue(os.path.lexists(retirement / client / "skills/gsd-join-discord"))
+                self.assertTrue((home / client / "skills/gsd-help").is_dir())
+            self.assertTrue((retirement / ".claude/skills/gsd-join-discord").is_symlink())
+            self.assertEqual((source / "SKILL.md").read_text(), "upstream source must survive")
+
     @unittest.skipIf(yaml is None, "PyYAML is not installed")
     def test_manifest_and_skill_metadata(self):
         entries = [line.split() for line in (ROOT / "skills.manifest").read_text().splitlines()
