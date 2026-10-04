@@ -75,11 +75,12 @@ whether it belongs in this shared repository.
 
 ## Workflow orchestration
 
-- Use gstack as the default project workflow for planning, review, QA, and
-  shipping.
+- GSD and gstack are disabled by default, including global installation and
+  updates. Use the current project's checked-in workflow and verification rules.
 - Treat GSD as disabled unless the current project's checked-in instructions
   explicitly enable it or the user explicitly invokes a GSD workflow for that
-  project. Global installation makes GSD available; it does not enable it.
+  project. Explicit upstream installation makes GSD available; it does not
+  enable it for every project.
 - Do not create `.planning/` state or invoke `gsd-*` automatically based only
   on project size or task complexity.
 - In a GSD-enabled project, let GSD own roadmap, phase, execution,

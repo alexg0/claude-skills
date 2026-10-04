@@ -13,11 +13,15 @@ usage() {
   cat <<'EOF'
 Usage: ./install-upstream.sh [--dry-run] [--only PACKAGE]
 
-Installs or updates:
-  gstack, GSD, Ponytail, Unlazy, HERDR
+Installs or updates by default:
+  selected Ponytail skills, Unlazy, HERDR
   kun
   agent-browser, context7, frontend-responsive-ui
   gh-address-comments, gh-fix-ci, vercel-react-best-practices
+
+GSD and gstack are disabled by default. Re-enable explicitly with
+--only gsd or --only gstack. GSD's Discord invite card is quarantined after
+installation rather than registered.
 
 PACKAGE is one of:
   gstack, gsd, ponytail, unlazy, kun, herdr, agent-browser, context7, codex-skills,
@@ -89,6 +93,24 @@ install_gsd() {
   echo "GSD"
   run npx -y get-shit-done-cc@latest --claude --global
   run npx -y get-shit-done-cc@latest --codex --global
+  retire_gsd_invite
+}
+
+retire_gsd_invite() {
+  local root entry destination
+  local retirement="${HOME}/.local/share/skill-retirement/gsd-invite-$(date -u +%Y%m%dT%H%M%SZ)-$$"
+  for root in .claude .agents .codex; do
+    entry="${HOME}/${root}/skills/gsd-join-discord"
+    # Test links themselves, including broken links; mv never follows targets.
+    if [ -e "$entry" ] || [ -L "$entry" ]; then
+      destination="${retirement}/${root}/skills/gsd-join-discord"
+      run mkdir -p "${retirement}/${root}/skills"
+      run mv "$entry" "$destination"
+      if [ "$DRY_RUN" = false ]; then
+        printf '%s\t%s\n' "$entry" "$destination" >> "${retirement}/manifest.tsv"
+      fi
+    fi
+  done
 }
 
 install_skill_repo() {
@@ -112,7 +134,8 @@ install_selected_skill_repo() {
 }
 
 install_ponytail() {
-  install_skill_repo "Ponytail" DietrichGebert/ponytail
+  install_selected_skill_repo "Ponytail" DietrichGebert/ponytail \
+    ponytail ponytail-audit ponytail-debt ponytail-review
 }
 
 install_unlazy() {
@@ -159,7 +182,7 @@ install_canonical_skills() {
 }
 
 case "$ONLY" in
-  all) install_gstack; install_gsd; install_ponytail; install_unlazy; install_kun; install_herdr; install_canonical_skills ;;
+  all) install_ponytail; install_unlazy; install_kun; install_herdr; install_canonical_skills ;;
   gstack) install_gstack ;;
   gsd) install_gsd ;;
   ponytail) install_ponytail ;;
