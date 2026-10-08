@@ -137,6 +137,7 @@ Preview or run the maintained upstream installation commands:
 ./install-upstream.sh --only ponytail
 ./install-upstream.sh --only unlazy
 ./install-upstream.sh --only kun
+./install-upstream.sh --only typesafe
 ./install-upstream.sh --only herdr
 ./install-upstream.sh --only canonical
 ```
@@ -160,6 +161,10 @@ Ponytail installs only `ponytail`, `ponytail-audit`, `ponytail-debt`, and
 `ponytail-review`; the `ponytail-help` and `ponytail-gain` cards are excluded.
 Unlazy, kun, and HERDR are also installed for both clients through the upstream
 `skills` CLI. HERDR is selected specifically from `herdrdev/herdr`.
+TypeSafe installs the selected `typesafe-ai` skill globally for both clients
+from [typesafe-ai/skills](https://github.com/typesafe-ai/skills) through the
+upstream `skills` CLI. It supports calling Jev, TypeSafe's System One model.
+Its source remains upstream-owned and is not copied into `skills/`.
 The `canonical` group installs Agent Browser, Context7, Frontend Responsive
 Design Standards, OpenAI's GitHub workflow skills, and Vercel's React guidance
 from their reviewed public sources. Each package can also be selected

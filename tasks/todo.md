@@ -1,3 +1,33 @@
+# TypeSafe upstream installation
+
+## Goal and acceptance criteria
+
+- Install only upstream `typesafe-ai` globally for Claude Code and Codex using
+  the existing selected-skill helper, in the default set and via `--only typesafe`.
+- Document upstream ownership without vendoring skill source or changing other
+  upstream package commands.
+
+## Discoveries
+
+- The existing selected-skill helper already provides global scope, both client
+  targets, and dry-run output without invoking the upstream installer.
+
+## Verification checklist
+
+- [x] Shell syntax and tooling regression tests, including TypeSafe selection.
+- [x] Python tests and all retained skill validators.
+- [x] Installer dry runs and diff whitespace check.
+
+## Results
+
+- Added TypeSafe to the default upstream package set and `--only typesafe`,
+  selecting only `typesafe-ai` through the existing helper. Updated README
+  ownership and selection docs; other upstream commands remain unchanged.
+- Passed Bash syntax, tooling regression tests, all 11 Python tests, all 14
+  retained skill validators, personal and upstream installer dry runs, importer
+  dry-run (no local TypeSafe source found), and `git diff --check`.
+- No real upstream install ran; live installation remains deferred.
+
 # Small upstream cleanup and workflow disablement
 
 ## Goal and acceptance criteria
