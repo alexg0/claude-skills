@@ -15,7 +15,7 @@ Usage: ./install-upstream.sh [--dry-run] [--only PACKAGE]
 
 Installs or updates by default:
   selected Ponytail skills, Unlazy, HERDR
-  kun
+  kun, TypeSafe
   agent-browser, context7, frontend-responsive-ui
   gh-address-comments, gh-fix-ci, vercel-react-best-practices
 
@@ -24,7 +24,7 @@ GSD and gstack are disabled by default. Re-enable explicitly with
 installation rather than registered.
 
 PACKAGE is one of:
-  gstack, gsd, ponytail, unlazy, kun, herdr, agent-browser, context7, codex-skills,
+  gstack, gsd, ponytail, unlazy, kun, typesafe, herdr, agent-browser, context7, codex-skills,
   github-workflows, vercel-react, canonical
 
 Set GSTACK_DIR to override the upstream clone location. The default follows
@@ -47,7 +47,7 @@ while [ "$#" -gt 0 ]; do
 done
 
 case "$ONLY" in
-  all|gstack|gsd|ponytail|unlazy|kun|herdr|agent-browser|context7|codex-skills|github-workflows|vercel-react|canonical) ;;
+  all|gstack|gsd|ponytail|unlazy|kun|typesafe|herdr|agent-browser|context7|codex-skills|github-workflows|vercel-react|canonical) ;;
   *) echo "Error: invalid --only package: $ONLY" >&2; exit 1 ;;
 esac
 
@@ -146,6 +146,10 @@ install_kun() {
   install_selected_skill_repo "kun" kunchenguid/kun kun
 }
 
+install_typesafe() {
+  install_selected_skill_repo "TypeSafe" typesafe-ai/skills typesafe-ai
+}
+
 install_herdr() {
   install_selected_skill_repo "HERDR" herdrdev/herdr herdr
 }
@@ -182,12 +186,13 @@ install_canonical_skills() {
 }
 
 case "$ONLY" in
-  all) install_ponytail; install_unlazy; install_kun; install_herdr; install_canonical_skills ;;
+  all) install_ponytail; install_unlazy; install_kun; install_typesafe; install_herdr; install_canonical_skills ;;
   gstack) install_gstack ;;
   gsd) install_gsd ;;
   ponytail) install_ponytail ;;
   unlazy) install_unlazy ;;
   kun) install_kun ;;
+  typesafe) install_typesafe ;;
   herdr) install_herdr ;;
   agent-browser) install_agent_browser ;;
   context7) install_context7 ;;

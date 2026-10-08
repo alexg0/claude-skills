@@ -190,6 +190,12 @@ if grep -Eq 'get-shit-done|garrytan/gstack|setup --host codex' "$TEST_ROOT/defau
   echo "Default upstream install unexpectedly enables GSD or gstack" >&2
   exit 1
 fi
+HOME="$TEST_HOME" /bin/bash "$UPSTREAM_INSTALLER" --dry-run --only typesafe >"$TEST_ROOT/typesafe.out"
+TYPESAFE_COMMAND='  (dry-run) npx -y skills add typesafe-ai/skills -g -a claude-code -a codex -y --skill typesafe-ai'
+grep -Fxq -- "$TYPESAFE_COMMAND" "$TEST_ROOT/typesafe.out"
+grep -Fxq -- "$TYPESAFE_COMMAND" "$TEST_ROOT/default.out"
+[ "$(grep -c 'skills add ' "$TEST_ROOT/typesafe.out")" -eq 1 ]
+[ ! -e "$REPO_ROOT/skills/typesafe-ai" ]
 HOME="$TEST_HOME" /bin/bash "$UPSTREAM_INSTALLER" --dry-run --only gsd >"$TEST_ROOT/gsd.out"
 grep -q 'get-shit-done-cc@latest --claude --global' "$TEST_ROOT/gsd.out"
 grep -q 'get-shit-done-cc@latest --codex --global' "$TEST_ROOT/gsd.out"
