@@ -1,3 +1,39 @@
+# REA upstream installation
+
+## Goal and acceptance criteria
+
+- Add a pinned `rea-agents@6.4.0` upstream installation entry for Claude Code
+  and Codex, without copying upstream skill text or code into this repository.
+- Keep setup explicit because it also registers MCP; do not install globally
+  or change client configuration during development.
+- Document behavior reconstruction without copying application code, optional
+  provider configuration, and the separate Hermes container integration.
+
+## Discoveries
+
+- The published 6.4.0 setup accepts repeated `--client` selections using
+  `claude_code` and `codex`, and `--yes` avoids interactive prompts. Selecting
+  clients includes the bundled skill; optional provider installation is separate.
+- Upstream packages are omitted from the personal skill manifest. REA can use
+  the existing installer dispatch and dry-run helper without a local wrapper.
+
+## Verification checklist
+
+- [x] Bash syntax and tooling regression tests, including REA selection and pin.
+- [x] Python tests and every retained skill validator.
+- [x] Personal, import, and upstream installer dry runs and diff whitespace check.
+
+## Results
+
+- Added opt-in `--only rea` using the existing dispatch and dry-run helper,
+  pinned to 6.4.0 and limited to Claude Code and Codex. Documented upstream
+  ownership, MCP setup effects, and behavior reconstruction without code copying.
+- Passed Bash syntax, tooling regressions, all 11 Python tests with no skips,
+  all 14 retained skill validators, installer/importer dry runs, and whitespace
+  checks. Python checks used a temporary environment with PyYAML.
+- No REA setup executed, no upstream source vendored, and no live installation,
+  client configuration, or Hermes changes performed.
+
 # TypeSafe upstream installation
 
 ## Goal and acceptance criteria

@@ -196,6 +196,15 @@ grep -Fxq -- "$TYPESAFE_COMMAND" "$TEST_ROOT/typesafe.out"
 grep -Fxq -- "$TYPESAFE_COMMAND" "$TEST_ROOT/default.out"
 [ "$(grep -c 'skills add ' "$TEST_ROOT/typesafe.out")" -eq 1 ]
 [ ! -e "$REPO_ROOT/skills/typesafe-ai" ]
+HOME="$TEST_HOME" /bin/bash "$UPSTREAM_INSTALLER" --dry-run --only rea >"$TEST_ROOT/rea.out"
+REA_COMMAND='  (dry-run) npx -y rea-agents@6.4.0 setup --client claude_code --client codex --yes'
+grep -Fxq -- "$REA_COMMAND" "$TEST_ROOT/rea.out"
+[ "$(grep -c '(dry-run)' "$TEST_ROOT/rea.out")" -eq 1 ]
+if grep -q 'rea-agents' "$TEST_ROOT/default.out"; then
+  echo "Default upstream install unexpectedly configures REA MCP" >&2
+  exit 1
+fi
+[ ! -e "$REPO_ROOT/skills/reverse-engineer-anything" ]
 HOME="$TEST_HOME" /bin/bash "$UPSTREAM_INSTALLER" --dry-run --only gsd >"$TEST_ROOT/gsd.out"
 grep -q 'get-shit-done-cc@latest --claude --global' "$TEST_ROOT/gsd.out"
 grep -q 'get-shit-done-cc@latest --codex --global' "$TEST_ROOT/gsd.out"

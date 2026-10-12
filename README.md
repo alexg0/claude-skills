@@ -138,6 +138,7 @@ Preview or run the maintained upstream installation commands:
 ./install-upstream.sh --only unlazy
 ./install-upstream.sh --only kun
 ./install-upstream.sh --only typesafe
+./install-upstream.sh --dry-run --only rea
 ./install-upstream.sh --only herdr
 ./install-upstream.sh --only canonical
 ```
@@ -165,6 +166,22 @@ TypeSafe installs the selected `typesafe-ai` skill globally for both clients
 from [typesafe-ai/skills](https://github.com/typesafe-ai/skills) through the
 upstream `skills` CLI. It supports calling Jev, TypeSafe's System One model.
 Its source remains upstream-owned and is not copied into `skills/`.
+
+REA is an explicit opt-in because its upstream setup installs both the bundled
+`reverse-engineer-anything` skill and MCP configuration. From the stable
+checkout, preview `./install-upstream.sh --dry-run --only rea`, then run
+`./install-upstream.sh --only rea` to invoke `rea-agents@6.4.0 setup` for only
+Claude Code and Codex. Setup approves those user-owned changes without prompts;
+restart the clients afterward. The MCP server runs with
+`npx -y rea-agents@6.4.0 mcp`. Optional analysis providers such as Ghidra and IDA
+need separate configuration.
+
+Use [REA](https://github.com/morluto/rea) to investigate application behavior,
+binary interfaces, and compatibility requirements. Rebuild behavior from
+observations and tests; never copy another application's code. The skill and
+server remain upstream-owned, with no local copy or `skills.manifest` entry.
+This installer does not configure Hermes; its container integration is separate.
+
 The `canonical` group installs Agent Browser, Context7, Frontend Responsive
 Design Standards, OpenAI's GitHub workflow skills, and Vercel's React guidance
 from their reviewed public sources. Each package can also be selected
