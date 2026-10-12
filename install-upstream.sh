@@ -22,9 +22,10 @@ Installs or updates by default:
 GSD and gstack are disabled by default. Re-enable explicitly with
 --only gsd or --only gstack. GSD's Discord invite card is quarantined after
 installation rather than registered.
+REA is opt-in via --only rea because its setup also writes MCP configuration.
 
 PACKAGE is one of:
-  gstack, gsd, ponytail, unlazy, kun, typesafe, herdr, agent-browser, context7, codex-skills,
+  gstack, gsd, ponytail, unlazy, kun, typesafe, rea, herdr, agent-browser, context7, codex-skills,
   github-workflows, vercel-react, canonical
 
 Set GSTACK_DIR to override the upstream clone location. The default follows
@@ -47,7 +48,7 @@ while [ "$#" -gt 0 ]; do
 done
 
 case "$ONLY" in
-  all|gstack|gsd|ponytail|unlazy|kun|typesafe|herdr|agent-browser|context7|codex-skills|github-workflows|vercel-react|canonical) ;;
+  all|gstack|gsd|ponytail|unlazy|kun|typesafe|rea|herdr|agent-browser|context7|codex-skills|github-workflows|vercel-react|canonical) ;;
   *) echo "Error: invalid --only package: $ONLY" >&2; exit 1 ;;
 esac
 
@@ -150,6 +151,11 @@ install_typesafe() {
   install_selected_skill_repo "TypeSafe" typesafe-ai/skills typesafe-ai
 }
 
+install_rea() {
+  echo "REA (MCP server and reverse-engineer-anything skill)"
+  run npx -y rea-agents@6.4.0 setup --client claude_code --client codex --yes
+}
+
 install_herdr() {
   install_selected_skill_repo "HERDR" herdrdev/herdr herdr
 }
@@ -193,6 +199,7 @@ case "$ONLY" in
   unlazy) install_unlazy ;;
   kun) install_kun ;;
   typesafe) install_typesafe ;;
+  rea) install_rea ;;
   herdr) install_herdr ;;
   agent-browser) install_agent_browser ;;
   context7) install_context7 ;;
