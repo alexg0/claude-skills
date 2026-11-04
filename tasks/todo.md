@@ -22,9 +22,10 @@
   (stem plus a short hash of the resolved source path) under the working
   directory's `.lavish/`, so reopening reuses the same file and session.
   Launcher output preserves the session URL.
-- Passed Bash syntax checks, tooling regressions, all 18 Python tests without
-  skips (including seven new launcher-stub tests), all 15 skill validators, and
-  `git diff --check`. Used a temporary PyYAML environment for validation.
+- Passed Bash syntax checks, tooling regressions, and `git diff --check`. After
+  the review fixes, all 20 Python tests passed without skips (including nine
+  `lavish-open` launcher-stub tests) with `PYTHONDONTWRITEBYTECODE=1`, and all
+  15 skill validators passed, using a temporary PyYAML environment.
 - Personal and upstream installer dry runs passed. The importer dry run
   correctly refused the new name because canonical source already exists.
 - No live Lavish session or feedback poll was started; those remain unverified.
