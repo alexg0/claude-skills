@@ -5,8 +5,8 @@ description: Open local HTML, Markdown, or plain-text files in Lavish, convertin
 
 # Open a file in Lavish
 
-Run the helper from the user's working directory, resolving its path relative
-to this skill:
+Run the helper from the user's working directory, resolving its path relative to
+this skill:
 
 ```bash
 python3 <skill-directory>/scripts/open_file.py <file-path>
@@ -17,15 +17,17 @@ HTML opens directly. Markdown (`.md`, `.markdown`) and plain text (`.txt`,
 `.lavish/<source-stem>-<path-hash>.html`, so reopening the same source
 overwrites that file and reuses its Lavish session. Each page gets a title from
 the first Markdown heading or filename and an embedded light/dark reading
-stylesheet. The source stays unchanged. The helper
-prints the opened HTML path to stderr and passes through Lavish's session URL
-on stdout. It requires Python 3, `lavish-axi`, and, for conversion, `pandoc`.
-If a dependency is missing, report the error; do not install it automatically.
+stylesheet. The source stays unchanged. The helper prints the opened HTML path
+to stderr and passes through Lavish's session URL on stdout. It requires
+Python 3, `lavish-axi`, and, for conversion, `pandoc`. If a dependency is
+missing, report the error; do not install it automatically.
 
 Return the session URL. Poll feedback with `lavish-axi poll <opened-html-path>`
-using the harness's own tracked background mechanism with completion notification
-to this agent. Never use shell `&`, `nohup`, or a detached fire-and-forget poll.
-If no completion-aware mechanism exists, use a foreground poll. Read delivered
-feedback completely and act on it; resume polling while review remains active.
+using the harness's own tracked background mechanism with completion
+notification to this agent. Never use shell `&`, `nohup`, or a detached
+fire-and-forget poll. If no completion-aware mechanism exists, use a foreground
+poll. Read delivered feedback completely and act on it; resume polling while
+review remains active.
 
-Relative images and other local assets in converted documents are not copied; prepare those separately when the report needs them.
+Relative images and other local assets in converted documents are not copied;
+prepare those separately when the report needs them.
