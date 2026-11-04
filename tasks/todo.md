@@ -1,3 +1,34 @@
+# Open files in Lavish
+
+## Goal and acceptance criteria
+
+- Add a global, client-neutral skill to open HTML directly and convert Markdown
+  and plain text with pandoc into styled standalone HTML under `.lavish/`.
+- Reuse the reference reading theme, preserve sources, print the session URL,
+  and document feedback polling through the harness's tracked mechanism.
+- Verify conversion with a stub launcher; leave live installation until merge.
+
+## Verification checklist
+
+- [x] Tooling tests, shell syntax, and Python unittest discovery.
+- [x] Validate all skills, installer dry runs, and whitespace check.
+- [x] Record results and commit the isolated branch.
+
+## Results
+
+- Added `lavish-open` and its global manifest entry, a Python helper, and the
+  reference light/dark stylesheet. HTML passes through; Markdown headings drive
+  titles; text remains literal. Converted files use unique names under the
+  working directory's `.lavish/`, and launcher output preserves the session URL.
+- Passed Bash syntax checks, tooling regressions, all 18 Python tests without
+  skips (including seven new launcher-stub tests), all 15 skill validators, and
+  `git diff --check`. Used a temporary PyYAML environment for validation.
+- Personal and upstream installer dry runs passed. The importer dry run
+  correctly refused the new name because canonical source already exists.
+- No live Lavish session or feedback poll was started; those remain unverified.
+  No live skill links were installed. Installation remains deferred until merge.
+
+
 # REA upstream installation
 
 ## Goal and acceptance criteria
