@@ -13,9 +13,11 @@ python3 <skill-directory>/scripts/open_file.py <file-path>
 ```
 
 HTML opens directly. Markdown (`.md`, `.markdown`) and plain text (`.txt`,
-`.text`, or no extension) become standalone HTML under the working directory's
-`.lavish/`, with a title from the first Markdown heading or filename and an
-embedded light/dark reading stylesheet. The source stays unchanged. The helper
+`.text`, or no extension) become standalone HTML at the working directory's
+`.lavish/<source-stem>-<path-hash>.html`, so reopening the same source
+overwrites that file and reuses its Lavish session. Each page gets a title from
+the first Markdown heading or filename and an embedded light/dark reading
+stylesheet. The source stays unchanged. The helper
 prints the opened HTML path to stderr and passes through Lavish's session URL
 on stdout. It requires Python 3, `lavish-axi`, and, for conversion, `pandoc`.
 If a dependency is missing, report the error; do not install it automatically.
@@ -26,6 +28,4 @@ to this agent. Never use shell `&`, `nohup`, or a detached fire-and-forget poll.
 If no completion-aware mechanism exists, use a foreground poll. Read delivered
 feedback completely and act on it; resume polling while review remains active.
 
-For testing, `LAVISH_AXI` may name a replacement launcher executable (one path,
-without shell arguments). Relative images and other local assets in converted
-documents are not copied; prepare those separately when the report needs them.
+Relative images and other local assets in converted documents are not copied; prepare those separately when the report needs them.

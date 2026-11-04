@@ -2,14 +2,13 @@
 """Open HTML directly or render Markdown/text for Lavish."""
 
 import argparse
+import hashlib
 from html.parser import HTMLParser
-import os
 from pathlib import Path
 import re
 import shutil
 import subprocess
 import sys
-import tempfile
 
 
 class FirstHeading(HTMLParser):
@@ -37,9 +36,8 @@ def open_file(source):
     source = source.expanduser().resolve(strict=True)
     if not source.is_file():
         raise ValueError(f"Not a file: {source}")
-    launcher = os.environ.get("LAVISH_AXI", "lavish-axi")
-    if not shutil.which(launcher):
-        raise ValueError(f"Missing lavish-axi executable: {launcher}; install it separately.")
+    if not shutil.which("lavish-axi"):
+        raise ValueError("Missing lavish-axi executable; install it separately.")
     suffix = source.suffix.lower()
     output = source
     if suffix not in {".html", ".htm"}:
@@ -64,9 +62,8 @@ def open_file(source):
         directory = Path.cwd() / ".lavish"
         directory.mkdir(exist_ok=True)
         style = Path(__file__).resolve().parents[1] / "assets" / "style.html"
-        with tempfile.NamedTemporaryFile(dir=directory, prefix="report-",
-                                         suffix=".html", delete=False) as handle:
-            output = Path(handle.name)
+        digest = hashlib.sha256(str(source).encode()).hexdigest()[:8]
+        output = directory / f"{source.stem}-{digest}.html"
         try:
             subprocess.run(command + ["-s", "--toc", "--toc-depth=2",
                            "--metadata", f"title={title}", "--include-in-header", str(style),
@@ -75,7 +72,7 @@ def open_file(source):
             output.unlink(missing_ok=True)
             raise
     print(f"Opened HTML: {output}", file=sys.stderr, flush=True)
-    subprocess.run([launcher, str(output)], check=True)
+    subprocess.run(["lavish-axi", str(output)], check=True)
 
 
 def main():

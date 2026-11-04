@@ -20,17 +20,19 @@ class LavishOpenTest(unittest.TestCase):
         self.sources = self.root / "source files"
         self.sources.mkdir()
         self.receipt = self.root / "opened-path"
-        self.launcher = self.root / "lavish stub"
+        self.bin = self.root / "stub bin"
+        self.bin.mkdir()
+        self.launcher = self.bin / "lavish-axi"
         self.launcher.write_text(
             '#!/bin/sh\nprintf "%s" "$1" > "$OPENED_PATH"\n'
             'printf "%s\\n" "http://localhost:1234/session/test"\n'
         )
         self.launcher.chmod(0o755)
-        self.env = dict(os.environ, LAVISH_AXI=str(self.launcher),
-                        OPENED_PATH=str(self.receipt))
+        self.env = dict(os.environ, OPENED_PATH=str(self.receipt),
+                        PATH=f"{self.bin}{os.pathsep}{os.environ.get('PATH', '')}")
 
-    def run_helper(self, name, content, **env):
-        source = self.sources / name
+    def run_helper(self, name, content, directory=None, **env):
+        source = (directory or self.sources) / name
         source.write_text(content)
         result = subprocess.run([sys.executable, str(SCRIPT), str(source)],
                                 cwd=self.work, env=dict(self.env, **env),
@@ -38,17 +40,30 @@ class LavishOpenTest(unittest.TestCase):
         self.assertEqual(source.read_text(), content)
         return result, source
 
-    def converted(self, name, content):
+    def converted(self, name, content, directory=None):
         if not shutil.which("pandoc"):
             self.skipTest("pandoc is required for conversion integration tests")
-        result, source = self.run_helper(name, content)
+        result, source = self.run_helper(name, content, directory)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("http://localhost:1234/session/test", result.stdout)
         output = Path(self.receipt.read_text())
         self.assertEqual(output.parent, self.work / ".lavish")
         self.assertFalse((source.parent / ".lavish").exists())
         self.assertIn(str(output), result.stderr)
+        self.output = output
         return output.read_text()
+
+    def test_reopen_overwrites_stable_source_derived_output(self):
+        self.converted("report.md", "# First")
+        first = self.output
+        self.assertTrue(first.name.startswith("report-"))
+        self.assertIn("<title>Second</title>", self.converted("report.md", "# Second"))
+        self.assertEqual(self.output, first)
+        other = self.root / "other sources"
+        other.mkdir()
+        self.converted("report.md", "# Other", other)
+        self.assertNotEqual(self.output, first)
+        self.assertEqual(len(list((self.work / ".lavish").glob("*.html"))), 2)
 
     def test_markdown_conversion_title_toc_table_and_theme(self):
         html = self.converted("report with spaces.MD", """```text
@@ -86,14 +101,15 @@ class LavishOpenTest(unittest.TestCase):
         self.assertIn("````", html)
 
     def test_html_opens_unchanged_without_pandoc(self):
-        result, source = self.run_helper("direct.HTML", "<h1>Already HTML</h1>", PATH="")
+        result, source = self.run_helper("direct.HTML", "<h1>Already HTML</h1>",
+                                         PATH=str(self.bin))
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(self.receipt.read_text(), str(source))
         self.assertFalse((self.work / ".lavish").exists())
 
     def test_missing_dependencies_fail_before_launch(self):
-        for overrides, message in [({"LAVISH_AXI": str(self.root / "missing")}, "Missing lavish-axi"),
-                                   ({"PATH": ""}, "Missing pandoc")]:
+        for overrides, message in [({"PATH": ""}, "Missing lavish-axi"),
+                                   ({"PATH": str(self.bin)}, "Missing pandoc")]:
             with self.subTest(message=message):
                 result, _ = self.run_helper("report.md", "# Report", **overrides)
                 self.assertNotEqual(result.returncode, 0)
@@ -110,7 +126,7 @@ class LavishOpenTest(unittest.TestCase):
         pandoc = self.root / "pandoc"
         pandoc.write_text('#!/bin/sh\nprintf "conversion failed\\n" >&2\nexit 2\n')
         pandoc.chmod(0o755)
-        result, _ = self.run_helper("notes.txt", "Plain text", PATH=str(self.root))
+        result, _ = self.run_helper("notes.txt", "Plain text", PATH=f"{self.bin}{os.pathsep}{self.root}")
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("conversion failed", result.stderr)
         self.assertFalse(self.receipt.exists())

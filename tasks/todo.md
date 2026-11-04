@@ -18,8 +18,10 @@
 
 - Added `lavish-open` and its global manifest entry, a Python helper, and the
   reference light/dark stylesheet. HTML passes through; Markdown headings drive
-  titles; text remains literal. Converted files use unique names under the
-  working directory's `.lavish/`, and launcher output preserves the session URL.
+  titles; text remains literal. Converted files use stable source-derived names
+  (stem plus a short hash of the resolved source path) under the working
+  directory's `.lavish/`, so reopening reuses the same file and session.
+  Launcher output preserves the session URL.
 - Passed Bash syntax checks, tooling regressions, all 18 Python tests without
   skips (including seven new launcher-stub tests), all 15 skill validators, and
   `git diff --check`. Used a temporary PyYAML environment for validation.
