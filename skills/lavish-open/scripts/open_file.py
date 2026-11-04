@@ -4,11 +4,13 @@
 import argparse
 import hashlib
 from html.parser import HTMLParser
+import os
 from pathlib import Path
 import re
 import shutil
 import subprocess
 import sys
+import tempfile
 
 
 class FirstHeading(HTMLParser):
@@ -64,12 +66,16 @@ def open_file(source):
         style = Path(__file__).resolve().parents[1] / "assets" / "style.html"
         digest = hashlib.sha256(str(source).encode()).hexdigest()[:8]
         output = directory / f"{source.stem}-{digest}.html"
+        with tempfile.NamedTemporaryFile(dir=directory, prefix=f".{output.stem}-",
+                                         suffix=".html", delete=False) as handle:
+            temporary = Path(handle.name)
         try:
             subprocess.run(command + ["-s", "--toc", "--toc-depth=2",
                            "--metadata", f"title={title}", "--include-in-header", str(style),
-                           "-o", str(output)], input=content, text=True, check=True)
+                           "-o", str(temporary)], input=content, text=True, check=True)
+            os.replace(temporary, output)
         except BaseException:
-            output.unlink(missing_ok=True)
+            temporary.unlink(missing_ok=True)
             raise
     print(f"Opened HTML: {output}", file=sys.stderr, flush=True)
     subprocess.run(["lavish-axi", str(output)], check=True)

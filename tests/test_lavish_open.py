@@ -122,15 +122,27 @@ class LavishOpenTest(unittest.TestCase):
         self.assertIn("Unsupported file type", result.stderr)
         self.assertFalse(self.receipt.exists())
 
-    def test_conversion_failure_does_not_launch_or_leave_html(self):
-        pandoc = self.root / "pandoc"
-        pandoc.write_text('#!/bin/sh\nprintf "conversion failed\\n" >&2\nexit 2\n')
+    def fail_conversion(self, name, content):
+        pandoc = self.root / "failing pandoc" / "pandoc"
+        pandoc.parent.mkdir(exist_ok=True)
+        pandoc.write_text('#!/bin/sh\nfor last; do :; done\nprintf "partial" > "$last"\n'
+                          'printf "conversion failed\\n" >&2\nexit 2\n')
         pandoc.chmod(0o755)
-        result, _ = self.run_helper("notes.txt", "Plain text", PATH=f"{self.bin}{os.pathsep}{self.root}")
+        self.receipt.unlink(missing_ok=True)
+        result, _ = self.run_helper(name, content, PATH=f"{self.bin}{os.pathsep}{pandoc.parent}")
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("conversion failed", result.stderr)
         self.assertFalse(self.receipt.exists())
-        self.assertEqual(list((self.work / ".lavish").glob("*.html")), [])
+
+    def test_conversion_failure_does_not_launch_or_leave_html(self):
+        self.fail_conversion("notes.txt", "Plain text")
+        self.assertEqual(list((self.work / ".lavish").iterdir()), [])
+
+    def test_failed_reconversion_keeps_previous_html(self):
+        previous = self.converted("notes.txt", "First version")
+        self.fail_conversion("notes.txt", "Second version")
+        self.assertEqual(list((self.work / ".lavish").iterdir()), [self.output])
+        self.assertEqual(self.output.read_text(), previous)
 
 
 if __name__ == "__main__":
